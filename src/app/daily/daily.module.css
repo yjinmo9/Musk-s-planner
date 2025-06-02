@@ -1,0 +1,373 @@
+.daily {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0; /* 테두리 추가 */
+  border-radius: 8px; /* 모서리 둥글게 */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 그림자 추가 (선택 사항) */
+  max-width: 900px; /* 원하는 가로 길이로 설정 */
+  margin: 0 auto; /* 중앙 정렬 */
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 헤더 영역 */
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.dateBox {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dateLabel {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.date {
+  font-size: 1.1rem;
+}
+
+/* 컨텐츠 레이아웃 */
+.content {
+  display: flex;
+  gap: 2rem;
+}
+
+.leftColumn {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.rightColumn {
+  width: 60%;
+  position: relative;
+}
+
+/* MAIN THINGS 섹션 */
+.mainThingsSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 4px;
+}
+
+.mainThingsSection h2 {
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.mainThingsList {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.mainThingItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.checkboxWrapper {
+  flex-shrink: 0;
+}
+
+.mainThingCheckbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.inputWrapper {
+  flex-grow: 1;
+  position: relative;
+}
+
+.mainThingInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+}
+
+.mainThingInput:focus {
+  outline: none;
+}
+
+.inputUnderline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #e0e0e0;
+}
+
+.mainThingInput:focus + .inputUnderline {
+  height: 2px;
+  background-color: #000;
+}
+
+/* BRAIN DUMP 섹션 */
+.brainDumpSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 4px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+}
+
+.brainDumpSection h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.brainDumpTextarea {
+  flex-grow: 1;
+  border: none;
+  resize: none;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  min-height: 400px;
+  padding: 0.5rem;
+}
+
+.brainDumpTextarea:focus {
+  outline: none;
+}
+
+/* TIME PLAN 섹션 */
+.colorPicker {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.colorButton {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.colorButton:hover {
+  transform: scale(1.1);
+}
+
+.selectedColor {
+  border: 2px solid #000;
+}
+
+.timePlanSection {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-top: 3rem;
+}
+
+.timePlanSection h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.timeHeader {
+  display: grid;
+  grid-template-columns: 40px repeat(6, 1fr);
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.timeHeader > div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 24px;
+  padding-right: 4px;
+}
+
+.timeGrid {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.timeRow {
+  display: grid;
+  grid-template-columns: 40px repeat(6, 1fr);
+  border-bottom: 1px solid #e0e0e0;
+  height: 40px;
+}
+
+.timeRow:last-child {
+  border-bottom: none;
+}
+
+.timeLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #666;
+  border-right: 1px solid #e0e0e0;
+}
+
+.timeSegment {
+  /* 상단 선언 + 필요한 속성만 추가 */
+  border-right: 1px solid #e0e0e0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+  user-select: none;
+  position: relative;
+}
+
+
+.timeSegment.selected.erasing {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.timeSegment:last-child {
+  border-right: none;
+}
+
+.timeSegment:hover {
+  background-color: #f5f5f5;
+}
+
+.timeSegment.selected {
+  opacity: 0.8;
+}
+
+/* 마우스 호버 시 툴팁 보이기 */
+.timeSegment:hover .tooltip {
+  display: block;
+}
+
+.timeSegment span {
+  padding: 2px 4px;
+  color: white;
+  font-size: 0.8rem;
+  word-break: keep-all;
+  text-align: center;
+}
+
+/* 모달 스타일 */
+.timeInputModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modalContent input {
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 200px;
+}
+
+.modalContent button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.modalContent button:hover {
+  background-color: #e0e0e0;
+}
+
+/* daily.module.css */
+/* daily.module.css */
+/* daily.module.css */
+.midPoint {
+  width: 20px;
+  height: 20px;
+  background-color: black;
+  border-radius: 50%;
+  position: absolute; /* 절대 위치 */
+  left: 50%; /* 중앙 정렬 */
+  top: 50%; /* 중앙 정렬 */
+  transform: translate(-50%, -50%); /* 중앙 정렬 */
+  cursor: pointer;
+}
+
+/* daily.module.css (예시) */
+
+
+
+.tooltip {
+  position: absolute;
+  display: none;
+  top: -2rem; /* 말풍선이 위로 뜨게 하기 */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+  font-size: 12px;
+}
+
+
+/* 말풍선 꼬리 모양을 원한다면 (선택) */
+.tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
