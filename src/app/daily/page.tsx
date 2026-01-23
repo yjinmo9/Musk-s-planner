@@ -14,9 +14,13 @@ const COLORS: Record<string, string> = {
   pink: '#ec4899'
 }
 
-interface TimeSegment {
+interface TimeBlock {
+  id: string
+  hour: number
+  startMinute: number // 0-50 (0, 10, 20, 30, 40, 50)
+  duration: number // in 10-minute units (1-6)
   content: string
-  color: string | null
+  color: string
 }
 
 interface MainTask {
@@ -27,7 +31,7 @@ interface MainTask {
 interface PlannerData {
   mainThings: MainTask[]
   brainDump: string
-  timeBlocks: { segments: TimeSegment[] }[]
+  timeBlocks: TimeBlock[]
   completed: boolean
 }
 
@@ -50,18 +54,17 @@ function DailyContent() {
       { text: 'Team standup', completed: false }
     ],
     brainDump: 'Review thermal tile placement on Starship S24. Coordinate with Propulsion team on Raptor 3 test firing scheduled for Friday. Need to call Kimbal about the board dinner. Buy more notebooks.',
-    timeBlocks: Array(9).fill(null).map(() => ({
-      segments: Array(6).fill(null).map(() => ({ content: '', color: null }))
-    })),
+    timeBlocks: [],
     completed: false
   })
 
   // 드래그 관련 상태
-  const [isColoring, setIsColoring] = useState(false)
-  const [isErasing, setIsErasing] = useState(false)
-  const [selectedTimeBlocks, setSelectedTimeBlocks] = useState<{ hour: number; segment: number; prevColor: string | null; prevContent: string }[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState<{ hour: number; slot: number } | null>(null)
+  const [dragEnd, setDragEnd] = useState<{ hour: number; slot: number } | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [showInput, setShowInput] = useState(false)
+  const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null)
 
   // 데이터 불러오기
   const fetchData = useCallback(async () => {
@@ -90,17 +93,35 @@ function DailyContent() {
           .eq('daily_plan_id', dailyPlan.id)
 
         if (timeBlocks) {
-          const newTimeBlocks = Array(9).fill(null).map(() => ({
-            segments: Array(6).fill(null).map(() => ({ content: '', color: null }))
-          }))
+          // Convert old format to new format
+          const blockMap = new Map<string, { hour: number; slots: Set<number>; content: string; color: string }>()
+          
           timeBlocks.forEach(block => {
-            if (block.hour >= 4 && block.hour <= 12 && block.segment >= 0 && block.segment <= 5) {
-              newTimeBlocks[block.hour - 4].segments[block.segment] = {
+            const key = `${block.hour}-${block.content}-${block.color}`
+            if (!blockMap.has(key)) {
+              blockMap.set(key, {
+                hour: block.hour,
+                slots: new Set([block.segment]),
                 content: block.content || '',
-                color: block.color
-              }
+                color: block.color || 'blue'
+              })
+            } else {
+              blockMap.get(key)!.slots.add(block.segment)
             }
           })
+
+          const newTimeBlocks: TimeBlock[] = Array.from(blockMap.values()).map((block, index) => {
+            const sortedSlots = Array.from(block.slots).sort((a, b) => a - b)
+            return {
+              id: `block-${index}`,
+              hour: block.hour,
+              startMinute: sortedSlots[0] * 10,
+              duration: sortedSlots.length,
+              content: block.content,
+              color: block.color
+            }
+          })
+
           setPlannerData(prev => ({ ...prev, timeBlocks: newTimeBlocks }))
         }
       }
@@ -144,20 +165,31 @@ function DailyContent() {
       }
 
       if (planId) {
-        const timeBlocksToUpsert = plannerData.timeBlocks.flatMap((block, hIndex) =>
-          block.segments.map((seg, sIndex) => ({
-            daily_plan_id: planId,
-            hour: hIndex + 4,
-            segment: sIndex,
-            color: seg.color,
-            content: seg.content
-          })).filter(tb => tb.color || tb.content)
-        )
+        // Delete all existing time blocks for this plan
+        await supabase
+          .from('time_blocks')
+          .delete()
+          .eq('daily_plan_id', planId)
+
+        // Insert new time blocks (expand each block into individual segments)
+        const timeBlocksToUpsert = plannerData.timeBlocks.flatMap(block => {
+          const segments = []
+          for (let i = 0; i < block.duration; i++) {
+            segments.push({
+              daily_plan_id: planId,
+              hour: block.hour,
+              segment: (block.startMinute / 10) + i,
+              color: block.color,
+              content: block.content
+            })
+          }
+          return segments
+        })
 
         if (timeBlocksToUpsert.length > 0) {
           await supabase
             .from('time_blocks')
-            .upsert(timeBlocksToUpsert, { onConflict: 'daily_plan_id,hour,segment' })
+            .insert(timeBlocksToUpsert)
         }
       }
     } else {
@@ -189,102 +221,132 @@ function DailyContent() {
     setTimeout(saveData, 100)
   }
 
-  // 색상 적용
-  const applyColor = (hour: number, segment: number, colorValue: string | null) => {
-    setPlannerData(prev => ({
-      ...prev,
-      timeBlocks: prev.timeBlocks.map((block, hIndex) =>
-        hIndex === hour - 4
-          ? {
-              ...block,
-              segments: block.segments.map((seg, sIndex) =>
-                sIndex === segment ? { ...seg, color: colorValue } : seg
-              )
-            }
-          : block
-      )
-    }))
-  }
+  // Helper: Get total minutes from hour and slot
+  const getTotalMinutes = (hour: number, slot: number) => hour * 60 + slot * 10
 
-  const applyContent = (hour: number, segment: number, contentValue: string) => {
-    setPlannerData(prev => ({
-      ...prev,
-      timeBlocks: prev.timeBlocks.map((block, hIndex) =>
-        hIndex === hour - 4
-          ? {
-              ...block,
-              segments: block.segments.map((seg, sIndex) =>
-                sIndex === segment ? { ...seg, content: contentValue } : seg
-              )
-            }
-          : block
-      )
-    }))
+  // Helper: Check if a time range overlaps with existing blocks
+  const hasOverlap = (hour: number, startSlot: number, endSlot: number, excludeId?: string) => {
+    const startMinutes = getTotalMinutes(hour, startSlot)
+    const endMinutes = getTotalMinutes(hour, endSlot + 1)
+
+    return plannerData.timeBlocks.some(block => {
+      if (excludeId && block.id === excludeId) return false
+      
+      const blockStartMinutes = getTotalMinutes(block.hour, block.startMinute / 10)
+      const blockEndMinutes = blockStartMinutes + (block.duration * 10)
+
+      return !(endMinutes <= blockStartMinutes || startMinutes >= blockEndMinutes)
+    })
   }
 
   // 마우스 핸들러
-  const handleMouseDown = (e: React.MouseEvent, hour: number, segment: number) => {
+  const handleMouseDown = (e: React.MouseEvent, hour: number, slot: number) => {
+    e.preventDefault()
     const isRightClick = e.button === 2
-    const currentSegment = plannerData.timeBlocks[hour - 4].segments[segment]
 
-    if (currentSegment.color || isRightClick) {
-      setIsErasing(true)
-      setSelectedTimeBlocks([{
-        hour, segment,
-        prevColor: currentSegment.color,
-        prevContent: currentSegment.content
-      }])
-      applyColor(hour, segment, null)
+    // Check if clicking on existing block
+    const clickedBlock = plannerData.timeBlocks.find(block => 
+      block.hour === hour && 
+      slot >= block.startMinute / 10 && 
+      slot < (block.startMinute / 10 + block.duration)
+    )
+
+    if (clickedBlock) {
+      if (isRightClick) {
+        // Delete block
+        setPlannerData(prev => ({
+          ...prev,
+          timeBlocks: prev.timeBlocks.filter(b => b.id !== clickedBlock.id)
+        }))
+        setTimeout(saveData, 100)
+      } else {
+        // Edit block
+        setEditingBlock(clickedBlock)
+        setInputValue(clickedBlock.content)
+        setShowInput(true)
+      }
     } else {
-      setIsErasing(false)
-      setSelectedTimeBlocks([{
-        hour, segment,
-        prevColor: currentSegment.color,
-        prevContent: currentSegment.content
-      }])
-      applyColor(hour, segment, selectedColor)
+      // Start new drag
+      setIsDragging(true)
+      setDragStart({ hour, slot })
+      setDragEnd({ hour, slot })
     }
-    setIsColoring(true)
   }
 
-  const handleMouseEnter = (hour: number, segment: number) => {
-    if (!isColoring) return
-    const currentSegment = plannerData.timeBlocks[hour - 4].segments[segment]
-    setSelectedTimeBlocks(prev => [...prev, {
-      hour, segment,
-      prevColor: currentSegment.color,
-      prevContent: currentSegment.content
-    }])
-    applyColor(hour, segment, isErasing ? null : selectedColor)
+  const handleMouseEnter = (hour: number, slot: number) => {
+    if (!isDragging || !dragStart) return
+    
+    // Only allow dragging within the same hour
+    if (hour === dragStart.hour) {
+      setDragEnd({ hour, slot })
+    }
   }
 
   const handleMouseUp = () => {
-    if (!isColoring) return
+    if (!isDragging || !dragStart || !dragEnd) return
 
-    if (selectedTimeBlocks.length > 0) {
-      if (isErasing) {
-        selectedTimeBlocks.forEach(({ hour, segment }) => applyContent(hour, segment, ''))
-        saveData()
-      } else {
-        setShowInput(true)
-      }
+    const startSlot = Math.min(dragStart.slot, dragEnd.slot)
+    const endSlot = Math.max(dragStart.slot, dragEnd.slot)
+
+    // Check for overlap
+    if (hasOverlap(dragStart.hour, startSlot, endSlot)) {
+      alert('This time slot overlaps with an existing event!')
+      setIsDragging(false)
+      setDragStart(null)
+      setDragEnd(null)
+      return
     }
-    setIsColoring(false)
-    setIsErasing(false)
+
+    setShowInput(true)
+    setIsDragging(false)
   }
 
   const handleInputSubmit = () => {
-    if (inputValue.trim()) {
-      selectedTimeBlocks.forEach(({ hour, segment }) => applyContent(hour, segment, inputValue.trim()))
-    } else {
-      selectedTimeBlocks.forEach(({ hour, segment, prevColor, prevContent }) => {
-        applyColor(hour, segment, prevColor)
-        applyContent(hour, segment, prevContent)
-      })
+    if (!inputValue.trim()) {
+      setShowInput(false)
+      setInputValue('')
+      setDragStart(null)
+      setDragEnd(null)
+      setEditingBlock(null)
+      return
     }
+
+    if (editingBlock) {
+      // Update existing block
+      setPlannerData(prev => ({
+        ...prev,
+        timeBlocks: prev.timeBlocks.map(block =>
+          block.id === editingBlock.id
+            ? { ...block, content: inputValue.trim() }
+            : block
+        )
+      }))
+    } else if (dragStart && dragEnd) {
+      // Create new block
+      const startSlot = Math.min(dragStart.slot, dragEnd.slot)
+      const endSlot = Math.max(dragStart.slot, dragEnd.slot)
+      const duration = endSlot - startSlot + 1
+
+      const newBlock: TimeBlock = {
+        id: `block-${Date.now()}`,
+        hour: dragStart.hour,
+        startMinute: startSlot * 10,
+        duration,
+        content: inputValue.trim(),
+        color: selectedColor
+      }
+
+      setPlannerData(prev => ({
+        ...prev,
+        timeBlocks: [...prev.timeBlocks, newBlock]
+      }))
+    }
+
     setShowInput(false)
     setInputValue('')
-    setSelectedTimeBlocks([])
+    setDragStart(null)
+    setDragEnd(null)
+    setEditingBlock(null)
     setTimeout(saveData, 100)
   }
 
@@ -408,67 +470,83 @@ function DailyContent() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto hide-scrollbar relative" onMouseUp={handleMouseUp}>
-            <div className="flex min-h-full">
-              {/* Hour Labels */}
-              <div className="w-8 border-r-2 border-black flex flex-col items-center bg-white">
-                {hours.map(hour => (
-                  <div key={hour} className="h-24 flex items-start justify-center pt-1 border-b border-black/20 last:border-b-0">
-                    <span className="text-[10px] font-black">{String(hour).padStart(2, '0')}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Time Grid */}
-              <div className="flex-1 relative">
-                {/* Grid Lines */}
-                <div className="absolute inset-0 w-full h-full pointer-events-none">
-                  {hours.map((_, hourIndex) => (
-                    <div key={hourIndex}>
-                      {[0, 1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-4 border-b border-gray-200"></div>
-                      ))}
-                      <div className="h-4 border-b-2 border-black"></div>
-                    </div>
-                  ))}
+          <div className="flex-1 overflow-y-auto hide-scrollbar relative bg-white" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+            {/* Time Grid - Horizontal Hours with Vertical 10-min Slots */}
+            {hours.map((hour) => (
+              <div key={hour} className="flex border-t border-black first:border-t-0 relative min-h-[144px]">
+                {/* Hour Label - Positioned overlapping the border */}
+                <div className="w-10 flex-shrink-0 flex justify-center relative bg-white">
+                  <span className="text-[12px] font-black absolute -top-2 bg-white px-1 z-10">{String(hour).padStart(2, '0')}</span>
+                  <div className="w-full border-r border-black/20" />
                 </div>
 
-                {/* Time Blocks */}
-                {plannerData.timeBlocks.map((block, hourIndex) => (
-                  <div key={hourIndex} className="flex h-24">
-                    {block.segments.map((segment, segIndex) => (
-                      <div
-                        key={segIndex}
-                        className="flex-1 relative cursor-pointer"
-                        style={{ 
-                          backgroundColor: segment.color ? `${COLORS[segment.color]}1A` : 'transparent',
-                          borderLeft: segment.color ? `6px solid ${COLORS[segment.color]}` : 'none'
-                        }}
-                        onMouseDown={(e) => handleMouseDown(e, hourIndex + 4, segIndex)}
-                        onMouseEnter={() => handleMouseEnter(hourIndex + 4, segIndex)}
-                      >
-                        {segment.content && (
-                          <div className="p-2">
-                            <span className="text-[9px] font-black text-black block">
-                              {String(hourIndex + 4).padStart(2, '0')}:{String(segIndex * 10).padStart(2, '0')}
-                            </span>
-                            <span className="text-[11px] font-bold text-black block truncate">
-                              {segment.content}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                {/* Time Slots Container - 6 rows stacked vertically (10 min each, 24px per slot) */}
+                <div className="flex-1 relative">
+                  {/* Background Grid - 6 horizontal lines */}
+                  <div className="absolute inset-0">
+                    {[0, 1, 2, 3, 4, 5].map(slot => (
+                      <div 
+                        key={slot} 
+                        className="h-6 border-b border-black/5 last:border-b-0"
+                      />
                     ))}
                   </div>
-                ))}
 
-                {/* Current Time Indicator */}
-                <div className="absolute top-[480px] w-full flex items-center z-20 pointer-events-none">
-                  <div className="size-2 bg-black rotate-45 -ml-1"></div>
-                  <div className="flex-1 h-px bg-black"></div>
+                  {/* Interactive Slots - 6 rows */}
+                  <div className="absolute inset-0">
+                    {[0, 1, 2, 3, 4, 5].map(slot => (
+                      <div
+                        key={slot}
+                        className="h-6 cursor-pointer hover:bg-black/5 transition-colors"
+                        onMouseDown={(e) => handleMouseDown(e, hour, slot)}
+                        onMouseEnter={() => handleMouseEnter(hour, slot)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Drag Preview for this hour */}
+                  {isDragging && dragStart && dragEnd && dragStart.hour === hour && dragEnd.hour === hour && (
+                    <div
+                      className="absolute pointer-events-none border border-black bg-black/5 left-0 right-0 z-20"
+                      style={{
+                        top: `${Math.min(dragStart.slot, dragEnd.slot) * 24}px`,
+                        height: `${(Math.abs(dragEnd.slot - dragStart.slot) + 1) * 24}px`
+                      }}
+                    />
+                  )}
+
+                  {/* Rendered Time Blocks for this hour */}
+                  {plannerData.timeBlocks
+                    .filter(block => block.hour === hour)
+                    .map(block => (
+                      <div
+                        key={block.id}
+                        className="absolute left-[1px] right-0 cursor-pointer hover:brightness-95 transition-all z-30 shadow-sm overflow-hidden"
+                        style={{
+                          top: `${(block.startMinute / 10) * 24}px`,
+                          height: `${block.duration * 24}px`,
+                          backgroundColor: `${COLORS[block.color]}15`, // More transparent
+                          borderLeft: `3px solid ${COLORS[block.color]}`
+                        }}
+                        onMouseDown={(e) => handleMouseDown(e, block.hour, block.startMinute / 10)}
+                      >
+                        <div className="px-3 py-1.5 h-full flex flex-col items-start leading-tight">
+                          <span className="text-[10px] font-black text-black">
+                            {String(block.hour).padStart(2, '0')}:{String(block.startMinute).padStart(2, '0')} - {
+                              block.startMinute + block.duration * 10 >= 60 
+                                ? `${String(block.hour + 1).padStart(2, '0')}:00` 
+                                : `${String(block.hour).padStart(2, '0')}:${String(block.startMinute + block.duration * 10).padStart(2, '0')}`
+                            }
+                          </span>
+                          <span className="text-[11px] font-bold text-black/80 mt-1 line-clamp-2">
+                            {block.content}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -533,7 +611,9 @@ function DailyContent() {
                 onClick={() => {
                   setShowInput(false)
                   setInputValue('')
-                  setSelectedTimeBlocks([])
+                  setDragStart(null)
+                  setDragEnd(null)
+                  setEditingBlock(null)
                 }}
                 className="flex-1 border-2 border-black bg-white text-black py-2 px-4 font-bold uppercase text-sm hover:bg-slate-50"
               >

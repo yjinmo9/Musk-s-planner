@@ -179,14 +179,14 @@ export default function Dashboard() {
       {/* Guest Mode Banner */}
       {!user && (
         <div className="p-4 pt-0">
-          <div className="flex flex-col items-start justify-between gap-4 rounded-xl border border-black p-4 bg-white">
+          <div className="flex flex-col items-start justify-between gap-4 border-2 border-black p-4 bg-white">
             <div className="flex flex-col gap-1">
-              <p className="text-black text-sm font-bold leading-tight uppercase tracking-wide">Browsing as Guest</p>
-              <p className="text-slate-500 text-xs font-normal leading-normal">Sign in to sync your 10-minute blocks.</p>
+              <p className="text-black text-sm font-black leading-tight uppercase tracking-wide">Browsing as Guest</p>
+              <p className="text-black/70 text-xs font-medium leading-normal">Sign in to sync your 10-minute blocks.</p>
             </div>
             <button 
               onClick={signInWithGoogle}
-              className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-8 px-4 bg-black text-white text-xs font-semibold leading-normal uppercase tracking-wider"
+              className="flex min-w-[84px] cursor-pointer items-center justify-center h-8 px-4 bg-black text-white text-xs font-bold leading-normal uppercase tracking-wider hover:bg-black/90 transition-colors"
             >
               <span>Sign In</span>
             </button>
@@ -201,14 +201,14 @@ export default function Dashboard() {
       </div>
 
       <div className="px-4 mt-2">
-        <div className="bg-white rounded-xl border border-black overflow-hidden">
-          <div className="divide-y divide-black/5">
+        <div className="bg-white border-2 border-black overflow-hidden">
+          <div className="divide-y divide-black/10">
             {monthlyPlans.map((plan, index) => (
-              <label key={index} className="flex gap-x-3 p-4 flex-row items-center cursor-pointer hover:bg-slate-50 transition-colors">
+              <label key={index} className="flex gap-x-3 p-4 flex-row items-center cursor-pointer hover:bg-black/5 transition-colors">
                 <input 
                   checked={plan.completed}
                   onChange={() => togglePlan(index)}
-                  className="h-5 w-5 rounded border-black border-2 bg-transparent text-black focus:ring-0 focus:ring-offset-0 focus:outline-none custom-checkbox" 
+                  className="h-5 w-5 border-black border-2 bg-transparent text-black focus:ring-0 focus:ring-offset-0 focus:outline-none custom-checkbox" 
                   type="checkbox"
                 />
                 <input
@@ -216,7 +216,7 @@ export default function Dashboard() {
                   value={plan.text}
                   onChange={(e) => updatePlanText(index, e.target.value)}
                   onBlur={saveMonthlyPlan}
-                  className="text-black text-sm font-medium bg-transparent border-none focus:outline-none flex-1"
+                  className="text-black text-sm font-bold bg-transparent border-none focus:outline-none flex-1"
                   placeholder="Enter objective..."
                 />
               </label>
@@ -228,7 +228,7 @@ export default function Dashboard() {
       <div className="flex px-4 py-3">
         <button 
           onClick={addPlan}
-          className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-xl h-12 px-4 flex-1 border-2 border-black bg-white text-black gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-black hover:text-white transition-all uppercase"
+          className="flex min-w-[84px] cursor-pointer items-center justify-center h-12 px-4 flex-1 border-2 border-black bg-white text-black gap-2 text-sm font-black leading-normal tracking-[0.015em] hover:bg-black hover:text-white transition-all uppercase"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -241,7 +241,7 @@ export default function Dashboard() {
       <div className="mt-4 relative">
         <div className="flex overflow-x-auto hide-scrollbar px-4 gap-6 items-center border-y border-black/10 py-6">
           {['MAY', 'JUN', 'JUL', 'AUG'].map((month) => (
-            <span key={month} className="text-slate-400 font-bold text-sm shrink-0">{month}</span>
+            <span key={month} className="text-black/30 font-bold text-sm shrink-0">{month}</span>
           ))}
           <div className="relative flex flex-col items-center shrink-0">
             <div className="cat-icon text-[#4ade80] mb-1">
@@ -253,23 +253,23 @@ export default function Dashboard() {
             <div className="absolute -bottom-2 w-1.5 h-1.5 bg-black rounded-full"></div>
           </div>
           {['OCT', 'NOV', 'DEC'].map((month) => (
-            <span key={month} className="text-slate-400 font-bold text-sm shrink-0">{month}</span>
+            <span key={month} className="text-black/30 font-bold text-sm shrink-0">{month}</span>
           ))}
         </div>
       </div>
 
       {/* Calendar */}
       <div className="p-4 mb-24">
-        <div className="bg-white rounded-xl p-4 border border-black">
+        <div className="bg-white p-4 border-2 border-black">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-black font-black uppercase tracking-wider">September 2023</h3>
             <div className="flex gap-2">
-              <button className="p-1 text-black">
+              <button className="p-1 text-black hover:bg-black/10 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <button className="p-1 text-black">
+              <button className="p-1 text-black hover:bg-black/10 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -279,7 +279,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-7 text-center gap-y-4">
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-              <div key={i} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{day}</div>
+              <div key={i} className="text-[10px] font-black text-black/40 uppercase tracking-widest">{day}</div>
             ))}
             
             {getCalendarDays(9).map((day, index) => (
@@ -287,7 +287,7 @@ export default function Dashboard() {
                 key={index}
                 onClick={() => handleDateClick(day)}
                 className={`relative flex flex-col items-center justify-center h-8 cursor-pointer ${
-                  !day.isCurrentMonth ? 'text-slate-200' : day.date === 5 ? 'text-black font-black underline underline-offset-2' : 'text-black font-medium'
+                  !day.isCurrentMonth ? 'text-black/20' : day.date === 5 ? 'text-black font-black underline underline-offset-2' : 'text-black font-bold'
                 }`}
               >
                 <span className="text-xs">{day.date}</span>
@@ -304,7 +304,7 @@ export default function Dashboard() {
       <div className="fixed bottom-0 w-full max-w-[430px] bg-white border-t border-black px-8 py-4 flex justify-between items-center z-50">
         <button 
           onClick={() => router.push('/')}
-          className="flex flex-col items-center gap-1 text-slate-400"
+          className="flex flex-col items-center gap-1 text-black/30"
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
@@ -313,7 +313,7 @@ export default function Dashboard() {
         </button>
         <button 
           onClick={() => router.push('/daily')}
-          className="flex flex-col items-center gap-1 text-slate-400"
+          className="flex flex-col items-center gap-1 text-black/30"
         >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
@@ -326,13 +326,19 @@ export default function Dashboard() {
           </svg>
           <span className="text-[10px] font-black uppercase">Board</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button 
+          onClick={() => router.push('/stats')}
+          className="flex flex-col items-center gap-1 text-black/30"
+        >
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
           </svg>
           <span className="text-[10px] font-bold uppercase">Stats</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button 
+          onClick={() => router.push('/settings')}
+          className="flex flex-col items-center gap-1 text-black/30"
+        >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

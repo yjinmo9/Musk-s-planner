@@ -67,23 +67,13 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Main Action Buttons */}
-        <div className="w-full max-w-md flex flex-col gap-4 mb-10">
+        {/* Main Action Button */}
+        <div className="w-full max-w-md mb-10">
           <button 
             onClick={handleDailyPlannerClick}
-            className="flex h-14 w-full items-center justify-center gap-3 bg-black text-white text-[13px] font-bold uppercase tracking-[0.15em] transition-all hover:bg-gray-900 active:translate-y-0.5"
+            className="flex h-16 w-full items-center justify-center bg-black text-white text-base font-bold uppercase tracking-[0.2em] transition-all hover:bg-gray-900 active:translate-y-0.5"
           >
-            <span className="material-symbols-outlined text-[18px]">event_upcoming</span>
-            <span>Today&apos;s Planner</span>
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-          </button>
-          
-          <button 
-            onClick={handleDashboardClick}
-            className="flex h-14 w-full items-center justify-center gap-3 border-2 border-black bg-white text-black text-[13px] font-bold uppercase tracking-[0.15em] transition-all hover:bg-gray-50 active:translate-y-0.5"
-          >
-            <span className="material-symbols-outlined text-[18px]">dashboard</span>
-            <span>View Dashboard</span>
+            <span>TODAY&apos;S PLANNER</span>
           </button>
         </div>
 
@@ -174,13 +164,19 @@ export default function Home() {
             </svg>
             <span className="text-[10px] font-bold uppercase">Board</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-gray-400">
+          <button 
+            onClick={() => router.push('/stats')}
+            className="flex flex-col items-center gap-1 text-gray-400"
+          >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
             </svg>
             <span className="text-[10px] font-bold uppercase">Stats</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-gray-400">
+          <button 
+            onClick={() => router.push('/settings')}
+            className="flex flex-col items-center gap-1 text-gray-400"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
