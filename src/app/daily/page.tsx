@@ -3,7 +3,9 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
-import { X, Plus, Settings, ChevronLeft, Calendar as CalendarIcon, ClipboardCheck, LayoutDashboard, BarChart3 } from 'lucide-react'
+import { X, Plus, Settings, ChevronLeft, Calendar as CalendarIcon, ClipboardCheck, LayoutDashboard, BarChart3, GripVertical } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
+import { Card, CardContent } from "@/components/ui/card"
 
 export const dynamic = 'force-dynamic'
 
@@ -66,6 +68,92 @@ function DailyContent() {
   const [inputValue, setInputValue] = useState('')
   const [showInput, setShowInput] = useState(false)
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null)
+  
+  // Tasks View DnD State
+  const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null)
+  const [timeEditingId, setTimeEditingId] = useState<string | null>(null)
+
+  const handleBlockReorder = (sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return
+    
+    setPlannerData(prev => {
+      const sourceIndex = prev.timeBlocks.findIndex(b => b.id === sourceId)
+      const targetIndex = prev.timeBlocks.findIndex(b => b.id === targetId)
+      
+      if (sourceIndex === -1 || targetIndex === -1) return prev
+
+      const newBlocks = [...prev.timeBlocks]
+      const [movedBlock] = newBlocks.splice(sourceIndex, 1)
+      newBlocks.splice(targetIndex, 0, movedBlock)
+      
+      return { ...prev, timeBlocks: newBlocks }
+    })
+    setTimeout(saveData, 100)
+  }
+
+  const handleTimeChange = (blockId: string, newTimeStr: string) => {
+    // Expected format: "HH:mm"
+    const [hStr, mStr] = newTimeStr.split(':')
+    const newHour = parseInt(hStr, 10)
+    const newMinute = parseInt(mStr, 10)
+
+    if (isNaN(newHour) || isNaN(newMinute)) return
+
+    // Convert minute to nearest 10-min slot (0, 10, 20, 30, 40, 50)
+    const newStartMinute = Math.floor(newMinute / 10) * 10
+    
+    // Check for validation
+    // 1. Valid range (standard logic, assuming 24h format for simplicity)
+    if (newHour < 0 || newHour > 23 || newStartMinute < 0 || newStartMinute > 50) return
+
+    setPlannerData(prev => {
+      const block = prev.timeBlocks.find(b => b.id === blockId)
+      if (!block) return prev
+
+      // Check for overlap with OTHER blocks
+      const newStartAbs = getAbsSlot(newHour, newStartMinute / 10)
+      
+      // If the new time is outside our visible grid range (07:00 - next day 06:00)
+      // We need to map 24h hours to our grid "hours" array indices
+      // hours array: 7, 8, ..., 23, 0, 1, ..., 6
+      
+      // Check if this new hour exists in our grid
+      if (!hours.includes(newHour)) {
+        alert("Time is outside of the planner's range (07:00 - 06:59)")
+        return prev
+      }
+
+      // Check overlap
+      const hasConflict = prev.timeBlocks.some(other => {
+        if (other.id === blockId) return false
+        const otherStartAbs = getAbsSlot(other.hour, other.startMinute / 10)
+        
+        // Simple 1D overlap check
+        // We use absolute slots for comparison
+        const thisStart = newStartAbs
+        const thisEnd = newStartAbs + block.duration - 1
+        const otherStart = otherStartAbs
+        const otherEnd = otherStartAbs + other.duration - 1
+
+        return !(thisEnd < otherStart || thisStart > otherEnd)
+      })
+
+      if (hasConflict) {
+        alert('This time slot overlaps with another task!')
+        return prev
+      }
+
+      const updatedBlocks = prev.timeBlocks.map(b => 
+        b.id === blockId 
+          ? { ...b, hour: newHour, startMinute: newStartMinute }
+          : b
+      )
+      
+      return { ...prev, timeBlocks: updatedBlocks }
+    })
+    setTimeEditingId(null)
+    setTimeout(saveData, 100)
+  }
 
   // 데이터 불러오기
   const fetchData = useCallback(async () => {
@@ -484,7 +572,125 @@ function DailyContent() {
         {/* Right Side - Time Plan */}
         <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
           <div className="flex items-center border-b-2 border-black h-10 px-2 justify-between">
-            <h3 className="text-black text-xs font-black uppercase">Time Plan</h3>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="text-black text-xs font-black uppercase hover:bg-black/5 px-2 py-1 rounded transition-colors group flex items-center gap-1">
+                  Time Plan
+                  <Settings className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 bg-white rounded-2xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <DialogHeader className="p-6 pb-2 border-b-2 border-black/5">
+                  <DialogTitle className="text-xl font-black uppercase tracking-tight">Today's Flow</DialogTitle>
+                  <DialogDescription className="text-xs font-medium text-gray-500">
+                    Drag and drop to reschedule your tasks.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+                  {plannerData.timeBlocks.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-40 text-gray-400 gap-2">
+                        <CalendarIcon className="w-8 h-8 opacity-20" />
+                        <span className="text-xs font-medium">No tasks scheduled yet</span>
+                      </div>
+                    ) : (
+                      plannerData.timeBlocks
+                        .map((block) => (
+                          <div
+                            key={block.id}
+                            draggable
+                            onDragStart={(e) => setDraggedBlockId(block.id)}
+                            onDragOver={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              if (draggedBlockId) {
+                                handleBlockReorder(draggedBlockId, block.id)
+                                setDraggedBlockId(null)
+                              }
+                            }}
+                            className="transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            <Card className="border-0 shadow-sm bg-white overflow-hidden group hover:shadow-md transition-shadow">
+                              <CardContent className="p-0 flex items-stretch">
+                                {/* Color Strip */}
+                                <div 
+                                  className="w-1.5 shrink-0" 
+                                  style={{ backgroundColor: COLORS[block.color] }} 
+                                />
+                                
+                                <div className="flex-1 flex items-center p-3 gap-3">
+                                  {/* Drag Handle */}
+                                  <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500">
+                                    <GripVertical className="w-4 h-4" />
+                                  </div>
+                                  
+                                  {/* Content */}
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-sm text-black truncate leading-tight mb-1">
+                                      {block.content}
+                                    </h4>
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                      {/* Editable Start Time */}
+                                      <div 
+                                        className={`flex items-center rounded px-1.5 py-0.5 transition-colors cursor-pointer ${
+                                          timeEditingId === block.id ? 'bg-gray-100' : 'hover:bg-gray-100'
+                                        }`}
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setTimeEditingId(block.id)
+                                        }}
+                                      >
+                                        {timeEditingId === block.id ? (
+                                          <input
+                                            type="time"
+                                            value={`${String(block.hour).padStart(2, '0')}:${String(block.startMinute).padStart(2, '0')}`}
+                                            onChange={(e) => handleTimeChange(block.id, e.target.value)}
+                                            onBlur={() => setTimeEditingId(null)}
+                                            onKeyDown={(e) => e.key === 'Enter' && setTimeEditingId(null)}
+                                            autoFocus
+                                            className="bg-transparent border-none p-0 w-[54px] text-[10px] font-bold text-black focus:ring-0 focus:outline-none"
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        ) : (
+                                          <span className="text-gray-500 font-bold min-w-[32px] text-center">
+                                            {String(block.hour).padStart(2, '0')}:{String(block.startMinute).padStart(2, '0')}
+                                          </span>
+                                        )}
+                                      </div>
+                                      
+                                      <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                      <span>
+                                        {block.duration * 10} MIN
+                                      </span>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Delete Action (Optional, for quick cleanup) */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setPlannerData(prev => ({
+                                        ...prev,
+                                        timeBlocks: prev.timeBlocks.filter(b => b.id !== block.id)
+                                      }))
+                                      setTimeout(saveData, 100)
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-50 text-red-500 rounded-md transition-all"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                      ))
+                    )}
+                </div>
+              </DialogContent>
+            </Dialog>
             <div className="flex gap-1">
               {Object.entries(COLORS).map(([name, color]) => (
                 <button
