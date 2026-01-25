@@ -143,37 +143,48 @@ export default function StatsPage() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t-4 border-black px-8 py-4 flex justify-between items-center z-50">
+      <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-black px-8 py-4 flex justify-between items-center z-50">
         <button 
           onClick={() => router.push('/')}
-          className="flex flex-col items-center gap-1 text-slate-400"
+          className="flex flex-col items-center gap-1 text-black/30"
         >
-          <Home className="w-6 h-6" />
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
           <span className="text-[10px] font-bold uppercase">Home</span>
         </button>
         <button 
           onClick={() => router.push('/daily')}
-          className="flex flex-col items-center gap-1 text-slate-400"
+          className="flex flex-col items-center gap-1 text-black/30"
         >
-          <ClipboardList className="w-6 h-6" />
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
           <span className="text-[10px] font-bold uppercase">Daily</span>
         </button>
         <button 
           onClick={() => router.push('/dashboard')}
-          className="flex flex-col items-center gap-1 text-slate-400"
+          className="flex flex-col items-center gap-1 text-black/30"
         >
-          <LayoutGrid className="w-6 h-6" />
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+          </svg>
           <span className="text-[10px] font-bold uppercase">Board</span>
         </button>
         <button className="flex flex-col items-center gap-1 text-black">
-          <BarChart3 className="w-6 h-6" />
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+          </svg>
           <span className="text-[10px] font-black uppercase">Stats</span>
         </button>
         <button 
           onClick={() => router.push('/settings')}
-          className="flex flex-col items-center gap-1 text-slate-400"
+          className="flex flex-col items-center gap-1 text-black/30"
         >
-          <Settings className="w-6 h-6" />
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
           <span className="text-[10px] font-bold uppercase">Settings</span>
         </button>
       </div>

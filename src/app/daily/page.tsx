@@ -3,6 +3,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
+import { X, Plus, Settings, ChevronLeft, Calendar as CalendarIcon, ClipboardCheck, LayoutDashboard, BarChart3 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -58,10 +59,10 @@ function DailyContent() {
     completed: false
   })
 
-  // 드래그 관련 상태
+  // 드래그 관련 상태 (절대 슬롯 인덱스 사용: 0 ~ hours.length * 6 - 1)
   const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState<{ hour: number; slot: number } | null>(null)
-  const [dragEnd, setDragEnd] = useState<{ hour: number; slot: number } | null>(null)
+  const [dragStartAbs, setDragStartAbs] = useState<number | null>(null)
+  const [dragEndAbs, setDragEndAbs] = useState<number | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [showInput, setShowInput] = useState(false)
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null)
@@ -113,7 +114,7 @@ function DailyContent() {
           const newTimeBlocks: TimeBlock[] = Array.from(blockMap.values()).map((block, index) => {
             const sortedSlots = Array.from(block.slots).sort((a, b) => a - b)
             return {
-              id: `block-${index}`,
+              id: `block-${index}-${block.hour}`,
               hour: block.hour,
               startMinute: sortedSlots[0] * 10,
               duration: sortedSlots.length,
@@ -174,14 +175,22 @@ function DailyContent() {
         // Insert new time blocks (expand each block into individual segments)
         const timeBlocksToUpsert = plannerData.timeBlocks.flatMap(block => {
           const segments = []
+          const startingAbsSlot = hours.indexOf(block.hour) * 6 + (block.startMinute / 10)
+          
           for (let i = 0; i < block.duration; i++) {
-            segments.push({
-              daily_plan_id: planId,
-              hour: block.hour,
-              segment: (block.startMinute / 10) + i,
-              color: block.color,
-              content: block.content
-            })
+            const currentAbsSlot = startingAbsSlot + i
+            const hIdx = Math.floor(currentAbsSlot / 6)
+            const segment = currentAbsSlot % 6
+            
+            if (hIdx < hours.length) {
+              segments.push({
+                daily_plan_id: planId,
+                hour: hours[hIdx],
+                segment,
+                color: block.color,
+                content: block.content
+              })
+            }
           }
           return segments
         })
@@ -239,61 +248,78 @@ function DailyContent() {
     })
   }
 
+  // Helper: Get absolute slot index
+  const getAbsSlot = (hour: number, slot: number) => {
+    const hourIndex = hours.indexOf(hour)
+    return hourIndex * 6 + slot
+  }
+
   // 마우스 핸들러
   const handleMouseDown = (e: React.MouseEvent, hour: number, slot: number) => {
     e.preventDefault()
     const isRightClick = e.button === 2
+    const absSlot = getAbsSlot(hour, slot)
 
     // Check if clicking on existing block
-    const clickedBlock = plannerData.timeBlocks.find(block => 
-      block.hour === hour && 
-      slot >= block.startMinute / 10 && 
-      slot < (block.startMinute / 10 + block.duration)
-    )
+    const clickedBlock = plannerData.timeBlocks.find(block => {
+      const blockStartAbs = getAbsSlot(block.hour, block.startMinute / 10)
+      return absSlot >= blockStartAbs && absSlot < blockStartAbs + block.duration
+    })
 
     if (clickedBlock) {
       if (isRightClick) {
-        // Delete block
         setPlannerData(prev => ({
           ...prev,
           timeBlocks: prev.timeBlocks.filter(b => b.id !== clickedBlock.id)
         }))
         setTimeout(saveData, 100)
       } else {
-        // Edit block
         setEditingBlock(clickedBlock)
         setInputValue(clickedBlock.content)
         setShowInput(true)
       }
-    } else {
-      // Start new drag
+    } else if (!isRightClick) {
       setIsDragging(true)
-      setDragStart({ hour, slot })
-      setDragEnd({ hour, slot })
+      setDragStartAbs(absSlot)
+      setDragEndAbs(absSlot)
     }
+  }
+
+  const deleteBlock = (id: string) => {
+    setPlannerData(prev => ({
+      ...prev,
+      timeBlocks: prev.timeBlocks.filter(b => b.id !== id)
+    }))
+    setTimeout(saveData, 100)
   }
 
   const handleMouseEnter = (hour: number, slot: number) => {
-    if (!isDragging || !dragStart) return
-    
-    // Only allow dragging within the same hour
-    if (hour === dragStart.hour) {
-      setDragEnd({ hour, slot })
-    }
+    if (!isDragging || dragStartAbs === null) return
+    setDragEndAbs(getAbsSlot(hour, slot))
   }
 
   const handleMouseUp = () => {
-    if (!isDragging || !dragStart || !dragEnd) return
+    if (!isDragging || dragStartAbs === null || dragEndAbs === null) {
+      setIsDragging(false)
+      return
+    }
 
-    const startSlot = Math.min(dragStart.slot, dragEnd.slot)
-    const endSlot = Math.max(dragStart.slot, dragEnd.slot)
+    const start = Math.min(dragStartAbs, dragEndAbs)
+    const end = Math.max(dragStartAbs, dragEndAbs)
+    const duration = end - start + 1
 
     // Check for overlap
-    if (hasOverlap(dragStart.hour, startSlot, endSlot)) {
+    const hasOverlapAbs = plannerData.timeBlocks.some(block => {
+      const bStart = getAbsSlot(block.hour, block.startMinute / 10)
+      const bEnd = bStart + block.duration - 1
+      return !(end < bStart || start > bEnd)
+    })
+
+    if (hasOverlapAbs) {
       alert('This time slot overlaps with an existing event!')
       setIsDragging(false)
-      setDragStart(null)
-      setDragEnd(null)
+      setDragStartAbs(null)
+      setDragEndAbs(null)
       return
     }
 
@@ -305,32 +331,30 @@ function DailyContent() {
     if (!inputValue.trim()) {
       setShowInput(false)
       setInputValue('')
-      setDragStart(null)
-      setDragEnd(null)
+      setDragStartAbs(null)
+      setDragEndAbs(null)
       setEditingBlock(null)
       return
     }
 
     if (editingBlock) {
-      // Update existing block
       setPlannerData(prev => ({
         ...prev,
         timeBlocks: prev.timeBlocks.map(block =>
-          block.id === editingBlock.id
-            ? { ...block, content: inputValue.trim() }
-            : block
+          block.id === editingBlock.id ? { ...block, content: inputValue.trim() } : block
         )
       }))
-    } else if (dragStart && dragEnd) {
-      // Create new block
-      const startSlot = Math.min(dragStart.slot, dragEnd.slot)
-      const endSlot = Math.max(dragStart.slot, dragEnd.slot)
-      const duration = endSlot - startSlot + 1
+    } else if (dragStartAbs !== null && dragEndAbs !== null) {
+      const start = Math.min(dragStartAbs, dragEndAbs)
+      const end = Math.max(dragStartAbs, dragEndAbs)
+      const duration = end - start + 1
+      const hIdx = Math.floor(start / 6)
+      const slot = start % 6
 
       const newBlock: TimeBlock = {
         id: `block-${Date.now()}`,
-        hour: dragStart.hour,
-        startMinute: startSlot * 10,
+        hour: hours[hIdx],
+        startMinute: slot * 10,
         duration,
         content: inputValue.trim(),
         color: selectedColor
@@ -344,8 +368,8 @@ function DailyContent() {
 
     setShowInput(false)
     setInputValue('')
-    setDragStart(null)
-    setDragEnd(null)
+    setDragStartAbs(null)
+    setDragEndAbs(null)
     setEditingBlock(null)
     setTimeout(saveData, 100)
   }
@@ -358,7 +382,10 @@ function DailyContent() {
     )
   }
 
-  const hours = [4, 5, 6, 7, 8, 9, 10, 11, 12]
+  const hours = [
+    7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+    0, 1, 2, 3, 4, 5, 6
+  ]
 
   return (
     <div 
@@ -505,48 +532,90 @@ function DailyContent() {
                   </div>
 
                   {/* Drag Preview for this hour */}
-                  {isDragging && dragStart && dragEnd && dragStart.hour === hour && dragEnd.hour === hour && (
-                    <div
-                      className="absolute pointer-events-none border border-black bg-black/5 left-0 right-0 z-20"
-                      style={{
-                        top: `${Math.min(dragStart.slot, dragEnd.slot) * 24}px`,
-                        height: `${(Math.abs(dragEnd.slot - dragStart.slot) + 1) * 24}px`
-                      }}
-                    />
+                  {isDragging && dragStartAbs !== null && dragEndAbs !== null && (
+                    <div className="absolute inset-0 pointer-events-none z-20">
+                      {[0, 1, 2, 3, 4, 5].map(s => {
+                        const currentAbs = getAbsSlot(hour, s)
+                        const start = Math.min(dragStartAbs, dragEndAbs)
+                        const end = Math.max(dragStartAbs, dragEndAbs)
+                        if (currentAbs >= start && currentAbs <= end) {
+                          return (
+                            <div
+                              key={s}
+                              className="absolute left-0 right-0 border-x border-black"
+                              style={{
+                                top: `${s * 24}px`,
+                                height: '24px',
+                                backgroundColor: `${COLORS[selectedColor]}40`,
+                                borderTop: currentAbs === start ? '2px solid black' : 'none',
+                                borderBottom: currentAbs === end ? '2px solid black' : 'none',
+                                borderLeft: `4px solid ${COLORS[selectedColor]}`
+                              }}
+                            />
+                          )
+                        }
+                        return null
+                      })}
+                    </div>
                   )}
-
-                  {/* Rendered Time Blocks for this hour */}
-                  {plannerData.timeBlocks
-                    .filter(block => block.hour === hour)
-                    .map(block => (
-                      <div
-                        key={block.id}
-                        className="absolute left-[1px] right-0 cursor-pointer hover:brightness-95 transition-all z-30 shadow-sm overflow-hidden"
-                        style={{
-                          top: `${(block.startMinute / 10) * 24}px`,
-                          height: `${block.duration * 24}px`,
-                          backgroundColor: `${COLORS[block.color]}15`, // More transparent
-                          borderLeft: `3px solid ${COLORS[block.color]}`
-                        }}
-                        onMouseDown={(e) => handleMouseDown(e, block.hour, block.startMinute / 10)}
-                      >
-                        <div className="px-3 py-1.5 h-full flex flex-col items-start leading-tight">
-                          <span className="text-[10px] font-black text-black">
-                            {String(block.hour).padStart(2, '0')}:{String(block.startMinute).padStart(2, '0')} - {
-                              block.startMinute + block.duration * 10 >= 60 
-                                ? `${String(block.hour + 1).padStart(2, '0')}:00` 
-                                : `${String(block.hour).padStart(2, '0')}:${String(block.startMinute + block.duration * 10).padStart(2, '0')}`
-                            }
-                          </span>
-                          <span className="text-[11px] font-bold text-black/80 mt-1 line-clamp-2">
-                            {block.content}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
                 </div>
               </div>
             ))}
+
+            {/* Absolute Layer for Contiguous Time Blocks */}
+            <div className="absolute top-0 left-10 right-0 bottom-0 pointer-events-none z-30">
+              {plannerData.timeBlocks.map(block => {
+                const hIdx = hours.indexOf(block.hour)
+                if (hIdx === -1) return null
+
+                const top = hIdx * 144 + (block.startMinute / 10) * 24
+                const height = block.duration * 24
+                
+                return (
+                  <div
+                    key={block.id}
+                    className="absolute left-[1px] right-0 pointer-events-auto cursor-pointer group hover:brightness-95 transition-all shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] border-l-[4px] border-y border-r border-black/10 overflow-visible"
+                    style={{
+                      top: `${top}px`,
+                      height: `${height}px`,
+                      backgroundColor: `${COLORS[block.color]}15`,
+                      borderLeftColor: COLORS[block.color],
+                    }}
+                    onMouseDown={(e) => {
+                      if (e.button !== 2) { // Not right click
+                        setEditingBlock(block)
+                        setInputValue(block.content)
+                        setShowInput(true)
+                      }
+                    }}
+                  >
+                    {/* Delete Icon */}
+                    <button
+                      onMouseDown={(e) => {
+                        e.stopPropagation()
+                        deleteBlock(block.id)
+                      }}
+                      className="absolute top-1 right-1 size-5 bg-white hover:bg-red-50 text-black hover:text-red-600 rounded-full flex items-center justify-center border border-black/10 opacity-0 group-hover:opacity-100 transition-all shadow-sm z-50 hover:scale-110 active:scale-95"
+                      title="Delete event"
+                    >
+                      <X className="size-3" />
+                    </button>
+
+                    <div className="px-3 py-1.5 pr-8 h-full flex flex-col items-start leading-tight overflow-hidden">
+                      <div className="flex items-center gap-1.5 mb-1 w-full">
+                        <span className="text-[9px] font-bold text-black opacity-30 tracking-tight whitespace-nowrap">
+                          {String(block.hour).padStart(2, '0')}:{String(block.startMinute).padStart(2, '0')}
+                        </span>
+                        <div className="w-1 h-1 rounded-full bg-black/10 shrink-0" />
+                        <span className="text-[11px] font-black text-black tracking-tight truncate uppercase">
+                          {block.content}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -611,8 +680,8 @@ function DailyContent() {
                 onClick={() => {
                   setShowInput(false)
                   setInputValue('')
-                  setDragStart(null)
-                  setDragEnd(null)
+                  setDragStartAbs(null)
+                  setDragEndAbs(null)
                   setEditingBlock(null)
                 }}
                 className="flex-1 border-2 border-black bg-white text-black py-2 px-4 font-bold uppercase text-sm hover:bg-slate-50"
