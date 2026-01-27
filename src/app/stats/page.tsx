@@ -143,23 +143,35 @@ export default function StatsPage() {
 
           {/* Right/Bottom Sidebar: Momentum & Categories (lg:col-span-4) */}
           <div className="lg:col-span-4 space-y-8">
-            <div className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div 
+              onClick={() => setSelectedStat('momentum')}
+              className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all group"
+            >
                <div className="flex items-center justify-between mb-6">
                   <h3 className="text-sm font-black uppercase italic tracking-tighter">WEEKLY MOMENTUM</h3>
-                  <BarChart3 className="size-4 text-gray-300" />
+                  <div className="flex flex-col items-end">
+                    <BarChart3 className="size-4 text-gray-300 group-hover:text-black transition-colors" />
+                    <span className="text-[8px] font-bold text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">VIEW MISSION LOG</span>
+                  </div>
                </div>
                <div className="flex items-end justify-between h-48 gap-2">
                   {weeklyData.map((val, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                       <div className={`w-full bg-black transition-all hover:bg-gray-700 cursor-pointer ${i === 4 ? 'h-[90%] opacity-100' : 'h-[60%] opacity-20'}`} style={{ height: `${val}%` }}></div>
+                       <div className={`w-full bg-black transition-all hover:bg-gray-700 ${i === 4 ? 'h-[90%] opacity-100' : 'h-[60%] opacity-20'}`} style={{ height: `${val}%` }}></div>
                        <span className="text-[9px] font-black text-gray-400 uppercase">{['M','T','W','T','F','S','S'][i]}</span>
                     </div>
                   ))}
                </div>
             </div>
 
-            <div className="border-4 border-black bg-black text-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-6">NEURAL LOGS</h3>
+            <div 
+              onClick={() => setSelectedStat('pro_tier')}
+              className="border-4 border-black bg-black text-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_11px_rgba(168,85,247,0.2)] transition-all group"
+            >
+               <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">NEURAL LOGS</h3>
+                  <Lock className="size-4 text-purple-500 transition-transform group-hover:scale-110" />
+               </div>
                <div className="space-y-4">
                   {[
                     { label: 'DEEP WORK', value: '72%', status: 'OPTIMAL' },
@@ -172,6 +184,30 @@ export default function StatsPage() {
                           <p className="text-[9px] text-zinc-500 font-bold uppercase">{item.status}</p>
                        </div>
                        <span className="text-xl font-black">{item.value}</span>
+                    </div>
+                  ))}
+               </div>
+               <p className="mt-4 text-[9px] font-black text-purple-400 text-center uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">CLICK TO UNLOCK NEURAL LINK</p>
+            </div>
+
+            <div 
+              onClick={() => setSelectedStat('allocation')}
+              className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-50 transition-all group"
+            >
+               <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-black uppercase italic tracking-tighter">TIME ALLOCATION</h3>
+                  <PieChart className="size-4 text-gray-300 group-hover:text-black transition-colors" />
+               </div>
+               <div className="flex flex-col gap-3">
+                  {timeAllocation.map((item, i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-black uppercase">
+                        <span>{item.label}</span>
+                        <span>{item.value}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-gray-100 overflow-hidden border-2 border-black">
+                        <div className="h-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }}></div>
+                      </div>
                     </div>
                   ))}
                </div>

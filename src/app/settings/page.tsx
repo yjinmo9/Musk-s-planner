@@ -143,9 +143,14 @@ export default function SettingsPage() {
 
   const handleDeleteAll = () => {
     if (deleteInput === '삭제') {
-      alert("모든 미션 데이터가 소거되었습니다.");
-      setActiveModal(null);
-      setDeleteInput('');
+      // Clear localStorage 관련 키 소거
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('musk') || key.includes('guest_planner') || key.includes('monthly_plans')) {
+          localStorage.removeItem(key);
+        }
+      });
+      alert("모든 데이터가 소거되었습니다. 시스템을 재시작합니다.");
+      window.location.reload();
     }
   };
 
@@ -204,7 +209,27 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1">
                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">COMMANDER</p>
-                     <h2 className="text-[32px] font-black italic tracking-tighter uppercase leading-none">{user?.user_metadata?.full_name || user?.email || callSign}</h2>
+                     {isEditingCallSign ? (
+                       <form onSubmit={handleCallSignSave} className="flex items-center gap-2">
+                          <input 
+                            autoFocus
+                            className="text-[32px] font-black italic tracking-tighter uppercase bg-transparent outline-none border-b-4 border-black w-full"
+                            value={callSign}
+                            onChange={(e) => setCallSign(e.target.value)}
+                            onBlur={() => setIsEditingCallSign(false)}
+                          />
+                          <button type="submit" className="bg-black text-white p-2">
+                             <Check className="size-4" />
+                          </button>
+                       </form>
+                     ) : (
+                       <h2 
+                         onClick={() => setIsEditingCallSign(true)}
+                         className="text-[32px] font-black italic tracking-tighter uppercase leading-none cursor-pointer hover:bg-black/5"
+                       >
+                         {user?.user_metadata?.full_name || user?.email || callSign}
+                       </h2>
+                     )}
                      <div className="mt-4 flex items-center gap-4">
                         <div className="flex items-center gap-2">
                            <div className="size-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -237,8 +262,22 @@ export default function SettingsPage() {
                   ))}
                   
                   <div 
+                    onClick={() => setActiveModal('dayCycle')}
+                    className="flex items-center justify-between group cursor-pointer border-t-2 border-black/5 pt-6 transition-all hover:bg-black/5"
+                   >
+                     <div className="flex items-center gap-4">
+                        <Clock className="size-5 text-gray-400 group-hover:text-black transition-colors" />
+                        <span className="text-sm font-black uppercase">DAY CYCLE CONFIG</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <span className="text-sm font-black italic">{dayStart} - {dayEnd}</span>
+                        <ChevronRight className="size-4" />
+                     </div>
+                  </div>
+
+                  <div 
                     onClick={() => setActiveModal('timeQuantum')}
-                    className="flex items-center justify-between group cursor-pointer border-t-2 border-black/5 pt-6"
+                    className="flex items-center justify-between group cursor-pointer border-t-2 border-black/5 pt-6 transition-all hover:bg-black/5"
                    >
                      <div className="flex items-center gap-4">
                         <Timer className="size-5 text-gray-400 group-hover:text-black transition-colors" />
@@ -247,6 +286,24 @@ export default function SettingsPage() {
                      <div className="flex items-center gap-2">
                         <span className="text-sm font-black italic">{timeQuantum}</span>
                         <ChevronRight className="size-4" />
+                     </div>
+                  </div>
+
+                  <div 
+                    onClick={() => setActiveModal('colorProtocol')}
+                    className="flex items-center justify-between group cursor-pointer border-t-2 border-black/5 pt-6 transition-all hover:bg-black/5"
+                   >
+                     <div className="flex items-center gap-4">
+                        <Palette className="size-5 text-gray-400 group-hover:text-black transition-colors" />
+                        <span className="text-sm font-black uppercase">COLOR PROTOCOL</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="flex -space-x-1">
+                           {colors.map(c => (
+                             <div key={c.id} className="size-3 border border-black" style={{ backgroundColor: c.color }} />
+                           ))}
+                        </div>
+                        <ChevronRight className="size-4 ml-2" />
                      </div>
                   </div>
                </div>
