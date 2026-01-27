@@ -1,193 +1,305 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, Share2, TrendingUp, Home, ClipboardList, LayoutGrid, Settings } from 'lucide-react';
+import { 
+  BarChart3, 
+  Share2, 
+  TrendingUp, 
+  Home, 
+  ClipboardList, 
+  LayoutGrid, 
+  Settings,
+  Lock,
+  PieChart,
+  Activity,
+  Zap,
+  CheckCircle2,
+  Calendar,
+  Check,
+  XCircle,
+  Clock
+} from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 
 export default function StatsPage() {
   const router = useRouter();
-  // Sample data - replace with real data from your backend
-  const efficiency = 75;
-  const timeBoxed = 14.2;
-  const deepWork = 8.5;
-  const weeklyData = [45, 62, 38, 95, 52, 78, 58]; // Sample weekly momentum data
+
+  // Interaction State
+  const [selectedStat, setSelectedStat] = useState<string | null>(null);
+
+  // Mock Data
+  const dailyReadiness = 80; // 4 out of 5 Main Things
+  const streakDays = 12;
+  const weeklyData = [45, 62, 38, 95, 52, 78, 58];
+  const timeAllocation = [
+    { label: '몰입 업무', value: 50, color: '#000000', hrs: '4.5' },
+    { label: '회의', value: 20, color: '#666666', hrs: '2.0' },
+    { label: '건강/운동', value: 10, color: '#999999', hrs: '1.0' },
+    { label: '기타', value: 20, color: '#e5e5e5', hrs: '1.5' },
+  ];
+
+  // Daily Tasks Mock
+  const dailyTasks = [
+    { id: 1, text: "화성 탐사선 펌웨어 배포", completed: true },
+    { id: 2, text: "스타쉽 엔진 테스트 리뷰", completed: true },
+    { id: 3, text: "뉴럴링크 이사회 회의", completed: true },
+    { id: 4, text: "도지코인 관련 트윗 작성", completed: true },
+    { id: 5, text: "2026 로드맵 계획 수립", completed: false },
+  ];
+
+  const closeModal = () => setSelectedStat(null);
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden max-w-[430px] mx-auto bg-[#f5f5f5] pb-24">
-      <div className="p-6">
+    <div className="min-h-screen w-full bg-[#f8f8f8] p-4 md:p-8">
+      <div className="mx-auto max-w-7xl">
         
-        {/* Header */}
-        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-6">
-          <div className="p-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-black flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-3xl font-black italic tracking-tight">MISSION STATS</h1>
-            </div>
-            <button className="w-12 h-12 border-4 border-black hover:bg-black hover:text-white transition-colors flex items-center justify-center">
-              <Share2 className="w-5 h-5" />
-            </button>
+        {/* Responsive Header */}
+        <div className="mb-8 flex items-end justify-between border-b-4 border-black pb-6">
+          <div className="flex items-center gap-4">
+             <div className="bg-black p-3 text-white">
+                <BarChart3 className="size-8" />
+             </div>
+             <div>
+                <h1 className="text-[32px] font-black italic tracking-tighter uppercase leading-none">MISSION STATS</h1>
+                <p className="mt-1 text-xs font-bold text-gray-500 uppercase tracking-widest">Performance Analysis & Output Tracking</p>
+             </div>
           </div>
+          <button className="hidden lg:flex items-center gap-2 border-4 border-black bg-white px-6 py-3 font-black uppercase italic hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none">
+            <Share2 className="size-5" />
+            SHARE REPORT
+          </button>
         </div>
 
-        {/* Main Stats Card */}
-        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           
-          {/* Efficiency Circle */}
-          <div className="p-8 border-b-4 border-black flex flex-col items-center">
-            <div className="relative w-48 h-48 mb-4">
-              {/* Background circle */}
-              <svg className="w-48 h-48 transform -rotate-90">
-                <circle
-                  cx="96"
-                  cy="96"
-                  r="88"
-                  stroke="#e5e5e5"
-                  strokeWidth="16"
-                  fill="none"
-                />
-                {/* Progress circle */}
-                <circle
-                  cx="96"
-                  cy="96"
-                  r="88"
-                  stroke="#000000"
-                  strokeWidth="16"
-                  fill="none"
-                  strokeDasharray={`${2 * Math.PI * 88}`}
-                  strokeDashoffset={`${2 * Math.PI * 88 * (1 - efficiency / 100)}`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              {/* Center text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-6xl font-black tracking-tight">{efficiency}%</div>
-                <div className="text-xs font-bold tracking-wider text-gray-500">EFFICIENCY</div>
-              </div>
-            </div>
-
-            <h2 className="text-2xl font-black italic tracking-tight mb-1">PEAK PERFORMANCE</h2>
-            <p className="text-sm text-gray-500 font-medium tracking-wide">CYCLE: 24H DURATION</p>
-          </div>
-
-          {/* Time Stats */}
-          <div className="p-6 border-b-4 border-black grid grid-cols-2 gap-4">
-            {/* Time Boxed */}
-            <div className="border-4 border-black p-6">
-              <div className="text-xs font-bold tracking-wider text-gray-500 mb-2">TIME BOXED</div>
-              <div className="text-4xl font-black italic tracking-tight">{timeBoxed}H</div>
-            </div>
-
-            {/* Deep Work */}
-            <div className="border-4 border-black p-6">
-              <div className="text-xs font-bold tracking-wider text-gray-500 mb-2">DEEP WORK</div>
-              <div className="text-4xl font-black italic tracking-tight">{deepWork}H</div>
-            </div>
-          </div>
-
-          {/* Weekly Momentum */}
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-black tracking-tight">WEEKLY MOMENTUM</h3>
-              <TrendingUp className="w-6 h-6" />
-            </div>
-
-            {/* Bar Chart */}
-            <div className="flex items-end justify-between gap-2 h-40">
-              {weeklyData.map((value, index) => {
-                const height = (value / 100) * 100; // Convert to percentage
-                const isHighest = value === Math.max(...weeklyData);
-                
-                return (
-                  <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full flex items-end justify-center" style={{ height: '160px' }}>
-                      <div
-                        className={`w-full border-4 border-black transition-all ${
-                          isHighest ? 'bg-black' : 'bg-white'
-                        }`}
-                        style={{ height: `${height}%` }}
+          {/* Top Row: Main Performance (lg:col-span-8) */}
+          <div className="lg:col-span-8 space-y-8">
+            <div className="border-4 border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+               <div className="flex flex-col lg:flex-row items-center justify-around gap-8">
+                  <div className="relative size-64 flex-shrink-0">
+                    <svg className="size-full transform -rotate-90">
+                      <circle cx="128" cy="128" r="110" stroke="#f3f4f6" strokeWidth="20" fill="none" />
+                      <circle
+                        cx="128" cy="128" r="110"
+                        stroke="black" strokeWidth="20" fill="none"
+                        strokeDasharray={`${2 * Math.PI * 110}`}
+                        strokeDashoffset={`${2 * Math.PI * 110 * (1 - 0.75)}`}
+                        strokeLinecap="square"
                       />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-[64px] font-black italic leading-none">75%</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">EFFICIENCY</span>
                     </div>
                   </div>
-                );
-              })}
+                  <div className="text-center lg:text-left">
+                    <h2 className="text-[32px] font-black italic tracking-tighter uppercase mb-2">PEAK PERFORMANCE</h2>
+                    <p className="text-sm font-bold text-gray-500 uppercase max-w-sm">당신의 집중도는 상위 5%입니다. 오전 10시에서 12시 사이에 가장 높은 효율을 보이고 있습니다.</p>
+                    <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-4">
+                       <div className="bg-black text-white px-4 py-2 text-xs font-black uppercase">STABLE LOGIC</div>
+                       <div className="border-2 border-black px-4 py-2 text-xs font-black uppercase">SYSTEM NOMINAL</div>
+                    </div>
+                  </div>
+               </div>
             </div>
 
-            {/* Day labels */}
-            <div className="flex justify-between mt-4">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => (
-                <div key={index} className="flex-1 text-center text-xs font-bold text-gray-500">
-                  {day}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex justify-between items-start mb-4">
+                     <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">TIME BLOCKS</p>
+                        <h3 className="text-[32px] font-black italic">14.2H</h3>
+                     </div>
+                     <Clock className="size-6 text-black/20" />
+                  </div>
+                  <div className="h-2 w-full bg-gray-100 mt-4 overflow-hidden">
+                     <div className="h-full bg-black w-[80%]"></div>
+                  </div>
+                  <p className="mt-2 text-[10px] font-bold text-gray-400 uppercase">지난주 대비 +2.4H</p>
+               </div>
+               <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex justify-between items-start mb-4">
+                     <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ACTIVE HOURS</p>
+                        <h3 className="text-[32px] font-black italic">08.5H</h3>
+                     </div>
+                     <Zap className="size-6 text-black/20" />
+                  </div>
+                  <div className="h-2 w-full bg-gray-100 mt-4 overflow-hidden">
+                     <div className="h-full bg-black w-[65%]"></div>
+                  </div>
+                  <p className="mt-2 text-[10px] font-bold text-gray-400 uppercase">금일 평균 대비 안정적</p>
+               </div>
+            </div>
+          </div>
+
+          {/* Right/Bottom Sidebar: Momentum & Categories (lg:col-span-4) */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+               <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-black uppercase italic tracking-tighter">WEEKLY MOMENTUM</h3>
+                  <BarChart3 className="size-4 text-gray-300" />
+               </div>
+               <div className="flex items-end justify-between h-48 gap-2">
+                  {weeklyData.map((val, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                       <div className={`w-full bg-black transition-all hover:bg-gray-700 cursor-pointer ${i === 4 ? 'h-[90%] opacity-100' : 'h-[60%] opacity-20'}`} style={{ height: `${val}%` }}></div>
+                       <span className="text-[9px] font-black text-gray-400 uppercase">{['M','T','W','T','F','S','S'][i]}</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="border-4 border-black bg-black text-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-6">NEURAL LOGS</h3>
+               <div className="space-y-4">
+                  {[
+                    { label: 'DEEP WORK', value: '72%', status: 'OPTIMAL' },
+                    { label: 'COORDINATION', value: '18%', status: 'NOMINAL' },
+                    { label: 'RECOVERY', value: '10%', status: 'CRITICAL' }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                       <div>
+                          <p className="text-xs font-black italic">{item.label}</p>
+                          <p className="text-[9px] text-zinc-500 font-bold uppercase">{item.status}</p>
+                       </div>
+                       <span className="text-xl font-black">{item.value}</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* --- MODALS --- */}
+
+      {/* 1. Daily Readiness Modal */}
+      <Modal
+        isOpen={selectedStat === 'readiness'}
+        onClose={closeModal}
+        title="일일 미션 체크리스트"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs font-bold text-gray-400 mb-2">
+            <span>과업</span>
+            <span>상태</span>
+          </div>
+          {dailyTasks.map((task) => (
+            <div key={task.id} className={`flex items-start gap-3 pb-3 border-b border-gray-100 ${task.completed ? 'opacity-50' : 'opacity-100'}`}>
+              <div className={`mt-0.5 w-5 h-5 flex items-center justify-center border-2 border-black ${task.completed ? 'bg-black text-white' : 'bg-white'}`}>
+                {task.completed && <Check className="w-3 h-3" />}
+              </div>
+              <div className="flex-1">
+                <div className={`text-sm font-bold ${task.completed ? 'line-through decoration-2' : ''}`}>
+                  {task.text}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          ))}
+          <button className="w-full mt-4 flex items-center justify-center gap-2 text-xs font-black border-2 border-red-500 text-red-500 p-2 hover:bg-red-50">
+             <Calendar className="w-3 h-3" />
+             미완료 항목 내일로 미루기
+          </button>
         </div>
+      </Modal>
 
-        {/* Additional Stats Cards */}
-        <div className="grid grid-cols-2 gap-6 mt-6">
-          {/* Tasks Completed */}
-          <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
-            <div className="text-xs font-bold tracking-wider text-gray-500 mb-2">TASKS COMPLETED</div>
-            <div className="text-4xl font-black italic tracking-tight">127</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">THIS WEEK</div>
-          </div>
-
-          {/* Streak */}
-          <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
-            <div className="text-xs font-bold tracking-wider text-gray-500 mb-2">CURRENT STREAK</div>
-            <div className="text-4xl font-black italic tracking-tight">12</div>
-            <div className="text-xs text-gray-500 font-medium mt-1">DAYS</div>
-          </div>
+      {/* 2. Momentum Modal */}
+      <Modal
+        isOpen={selectedStat === 'momentum'}
+        onClose={closeModal}
+        title="미션 로그 (MISSION LOG)"
+      >
+        <div className="space-y-4">
+            <div className="text-xs text-gray-500 font-bold uppercase">이번 주 성과 분석</div>
+            <div className="space-y-2">
+                {['월', '화', '수', '목', '금', '토', '일'].map((day, i) => (
+                    <div key={day} className="flex items-center justify-between p-2 hover:bg-gray-50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 text-xs font-black bg-black text-white text-center py-1">{day}</div>
+                            <div className="text-sm font-bold">{Math.floor(weeklyData[i] / 10)}시간 몰입 업무</div>
+                        </div>
+                        <div className="text-xs text-green-600 font-bold">
+                             {weeklyData[i] > 60 ? '▲ 높음' : '- 보통'}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="mt-4 p-3 bg-gray-100 border-2 border-gray-200">
+                <div className="text-xs font-bold text-gray-500 uppercase">주간 요약</div>
+                <div className="text-lg font-black tracking-tight mt-1">총 출력: 54시간</div>
+                <div className="text-xs font-bold text-green-600 mt-1 uppercase">▲ 지난주 대비 15% 증가</div>
+            </div>
         </div>
-      </div>
+      </Modal>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-black px-8 py-4 flex justify-between items-center z-50">
-        <button 
-          onClick={() => router.push('/')}
-          className="flex flex-col items-center gap-1 text-black/30"
-        >
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Home</span>
-        </button>
-        <button 
-          onClick={() => router.push('/daily')}
-          className="flex flex-col items-center gap-1 text-black/30"
-        >
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Daily</span>
-        </button>
-        <button 
-          onClick={() => router.push('/dashboard')}
-          className="flex flex-col items-center gap-1 text-black/30"
-        >
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Board</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-black">
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-          </svg>
-          <span className="text-[10px] font-black uppercase">Stats</span>
-        </button>
-        <button 
-          onClick={() => router.push('/settings')}
-          className="flex flex-col items-center gap-1 text-black/30"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span className="text-[10px] font-bold uppercase">Settings</span>
-        </button>
-      </div>
+      {/* 3. Allocation Modal */}
+      <Modal
+        isOpen={selectedStat === 'allocation'}
+        onClose={closeModal}
+        title="자원 배분 현황"
+      >
+        <div className="space-y-4">
+            {timeAllocation.map((item, i) => (
+                <div key={i} className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full border-4 border-black flex items-center justify-center text-sm font-black" style={{ backgroundColor: item.color, color: item.color === '#000000' ? 'white' : 'black' }}>
+                        {item.value}%
+                    </div>
+                    <div className="flex-1">
+                        <div className="text-sm font-black uppercase">{item.label}</div>
+                        <div className="text-xs text-gray-500 font-bold">{item.hrs}시간 기록됨</div>
+                    </div>
+                </div>
+            ))}
+            <div className="text-xs text-gray-400 font-medium text-center mt-4 pt-4 border-t border-gray-200">
+                배정된 시간 블록 데이터를 기반으로 측정되었습니다.
+            </div>
+        </div>
+      </Modal>
+
+      {/* 4. Pro Tier Modal */}
+      <Modal
+        isOpen={selectedStat === 'pro_tier'}
+        onClose={closeModal}
+        title="뉴럴 링크 업그레이드"
+      >
+        <div className="text-center py-4 text-black">
+             <Activity className="w-16 h-16 mx-auto mb-4 text-purple-600 animate-pulse" />
+             <h3 className="text-lg font-black italic mb-2 uppercase">고급 데이터 잠금 해제</h3>
+             <p className="text-sm text-gray-600 mb-6 px-4">
+                 정밀 분석, 히트맵, AI 기반 생산성 인사이트를 통해 당신의 출력을 수치적으로 한계까지 끌어올리세요.
+             </p>
+             
+             <div className="bg-gray-50 border-2 border-gray-200 p-4 mb-6 text-left">
+                 <div className="flex items-center gap-2 mb-2">
+                     <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                     <span className="text-xs font-bold">몰입 품질 점수 분석</span>
+                 </div>
+                 <div className="flex items-center gap-2 mb-2">
+                     <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                     <span className="text-xs font-bold">피크 타임 성능 히트맵</span>
+                 </div>
+                 <div className="flex items-center gap-2 mb-2">
+                     <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                     <span className="text-xs font-bold">장기 속도 및 성장 추이</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                     <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                     <span className="text-xs font-bold">데이터 내보내기 (CSV/PDF)</span>
+                 </div>
+             </div>
+
+             <button className="w-full bg-black text-white py-4 font-black tracking-widest text-sm hover:bg-purple-600 transition-colors uppercase">
+                 체험 시작하기 ($5/월)
+             </button>
+             <button onClick={closeModal} className="mt-4 text-xs font-bold text-gray-400 hover:text-black uppercase">
+                 아직 평범한 인간으로 남겠습니다
+             </button>
+        </div>
+      </Modal>
+
     </div>
   );
 }

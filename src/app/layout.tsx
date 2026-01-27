@@ -1,9 +1,10 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { Header, BottomNav } from '@/components/Navigation'
 
 export const metadata: Metadata = {
-  title: '마이 플래너',
-  description: '일정 관리를 위한 플래너 애플리케이션',
+  title: 'Musk\'s Planner',
+  description: 'High-Precision Time-Boxing Planner',
 }
 
 export default function RootLayout({
@@ -13,7 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body className="min-h-screen bg-[#f8f8f8] font-sans antialiased text-black">
+        <Header />
+        <main className="flex flex-col">
+          {children}
+        </main>
+        <BottomNav />
+      </body>
     </html>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import NextImage from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -32,159 +33,133 @@ export default function Home() {
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-hidden max-w-[430px] mx-auto bg-white border-x border-black">
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-6 border-b border-black">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center bg-black">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/>
-            </svg>
-          </div>
-          <h2 className="text-base font-bold tracking-tight uppercase">Musk&apos;s Planner</h2>
-        </div>
-        <button 
-          onClick={() => router.push('/dashboard')}
-          className="flex size-10 items-center justify-center border border-black bg-white hover:bg-gray-50 transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center">
-        {/* Title Section */}
-        <div className="mb-10 max-w-md">
-          <h1 className="text-black text-[48px] font-black leading-[1.05] mb-5 uppercase italic tracking-tight">
-            Precision<br/>Time-Boxing
-          </h1>
-          <div className="h-[2px] w-16 bg-black mx-auto mb-5"></div>
-          <p className="text-gray-600 text-[13px] font-semibold leading-relaxed tracking-wide uppercase">
-            Master your schedule in high-intensity 10-minute intervals.
-          </p>
-        </div>
-
-        {/* Main Action Button */}
-        <div className="w-full max-w-md mb-10">
-          <button 
-            onClick={handleDailyPlannerClick}
-            className="flex h-16 w-full items-center justify-center bg-black text-white text-base font-bold uppercase tracking-[0.2em] transition-all hover:bg-gray-900 active:translate-y-0.5"
-          >
-            <span>TODAY&apos;S PLANNER</span>
-          </button>
-        </div>
-
-        {/* Guest Mode Warning */}
-        {!user && (
-          <div className="w-full max-w-md mb-10">
-            <div className="flex flex-col items-start gap-3 border-2 border-black bg-white p-5 text-left">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-black text-[18px]">warning</span>
-                <p className="text-black text-[11px] font-black uppercase tracking-wider">Guest Mode Active</p>
-              </div>
-              <p className="text-gray-600 text-[11px] font-medium leading-relaxed">
-                Data is stored locally. Sign in to sync your mission across devices.
-              </p>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Footer - Login Section */}
-      <footer className="px-8 pb-10 w-full">
-        <div className="flex flex-col items-center gap-6 max-w-md mx-auto">
-          <div className="flex items-center w-full gap-4">
-            <div className="h-[1px] flex-1 bg-gray-300"></div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
-              {user ? 'Account' : 'Sync Mission'}
-            </p>
-            <div className="h-[1px] flex-1 bg-gray-300"></div>
-          </div>
+    <div className="w-full bg-white">
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="grid min-h-[calc(100vh-64px)] grid-cols-1 gap-12 py-12 lg:grid-cols-2 lg:items-center lg:py-24">
           
-          {!user ? (
-            <>
+          {/* Left Column: Hero Text */}
+          <div className="flex flex-col items-start text-left">
+            <div className="mb-8">
+              <span className="text-[11px] font-black tracking-[0.3em] text-gray-500 uppercase">HIGH-PRECISION PRODUCTIVITY</span>
+              <h1 className="mt-4 text-[56px] font-black leading-[0.95] tracking-tighter text-black sm:text-[84px] md:text-[96px] uppercase italic">
+                초정밀<br/>타임박싱
+              </h1>
+              <div className="mt-8 h-1 w-20 bg-black"></div>
+            </div>
+
+            <p className="max-w-md text-[16px] font-bold leading-relaxed text-gray-600 uppercase tracking-tight sm:text-[18px]">
+              10분 단위의 고강도 인터벌로 하루의 효율을 극한으로 끌어올리세요. 시스템 기반의 계획이 성공을 정의합니다.
+            </p>
+
+            <div className="mt-12 w-full max-w-sm">
               <button 
-                onClick={handleGoogleLogin}
-                className="flex h-12 w-full items-center justify-center gap-3 bg-white text-black transition-all border border-gray-300 hover:border-black active:scale-[0.98]"
+                onClick={handleDailyPlannerClick}
+                className="group relative flex h-20 w-full items-center justify-center overflow-hidden bg-black text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                <img 
-                  alt="Google" 
-                  className="w-4 h-4 grayscale" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZQc-51DbWQ9kHZwKiUJChjRtEFK2EWaopO0s0bPD8r6601FT6YZMjbBfE6HWWC827TASSLXAsIeaYjENuWfXfG31hXiq-ZIZe-wdajElpMSBWTJyoGJY_2-9gK18LjcVXDM88Hidmq-0No5_zWMIUaHpT5S68s2dK-b98-vih2MQeeiYGgzsTpSTuKGOPIO7_N_bh5TMffiywmMXW3JE64OCVLSMWYim06V4bEIRy4K1QL7F4EkxAC8EX5CH-6fdyzr21Fv9xkbEt"
-                />
-                <span className="text-[11px] font-bold uppercase tracking-wider">Continue with Google</span>
-              </button>
-              <button className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] hover:text-black transition-colors">
-                Other Sign-In Options
-              </button>
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-3 w-full">
-              <p className="text-sm text-gray-600 font-medium">
-                {user.email}
-              </p>
-              <button 
-                onClick={signOut}
-                className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] hover:text-black transition-colors"
-              >
-                Sign Out
+                <span className="relative z-10 text-[18px] font-black tracking-[0.2em] uppercase">오늘의 미션 시작하기</span>
+                <div className="absolute inset-0 translate-y-full bg-blue-600 transition-transform group-hover:translate-y-0"></div>
               </button>
             </div>
-          )}
-        </div>
-      </footer>
 
-      {/* Bottom Navigation */}
-      <nav className="border-t border-black bg-white">
-        <div className="flex h-16 items-center justify-around px-4 pb-2">
-          <button className="flex flex-col items-center gap-1 text-black">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-            <span className="text-[10px] font-black uppercase">Home</span>
-          </button>
-          <button 
-            onClick={handleDailyPlannerClick}
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-            </svg>
-            <span className="text-[10px] font-bold uppercase">Daily</span>
-          </button>
-          <button 
-            onClick={handleDashboardClick}
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-            </svg>
-            <span className="text-[10px] font-bold uppercase">Board</span>
-          </button>
-          <button 
-            onClick={() => router.push('/stats')}
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-            </svg>
-            <span className="text-[10px] font-bold uppercase">Stats</span>
-          </button>
-          <button 
-            onClick={() => router.push('/settings')}
-            className="flex flex-col items-center gap-1 text-gray-400"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="text-[10px] font-bold uppercase">Settings</span>
-          </button>
+            {/* Micro Stats */}
+            <div className="mt-16 flex gap-12 border-t border-black/10 pt-10">
+              <div>
+                <p className="text-[24px] font-black text-black">1.2M+</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">USERS</p>
+              </div>
+              <div>
+                <p className="text-[24px] font-black text-black">99.9%</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">UPTIME</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Login Card */}
+          <div className="flex items-center justify-center lg:justify-end">
+            <div className="relative w-full max-w-[480px]">
+              {/* Card Decoration */}
+              <div className="absolute -right-4 -top-4 -z-10 h-full w-full border-4 border-black bg-white"></div>
+              
+              <div className="border-4 border-black bg-white p-8 sm:p-12">
+                <div className="mb-10 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-[32px] font-black tracking-tighter text-black uppercase italic">MISSION CONTROL</h2>
+                    <p className="mt-1 text-[11px] font-bold text-gray-400 uppercase tracking-wide">미션 동기화를 위해 로그인하세요.</p>
+                  </div>
+                  <div className="flex size-12 items-center justify-center bg-black text-white">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/>
+                    </svg>
+                  </div>
+                </div>
+
+                {!user ? (
+                  <div className="space-y-6">
+                    <button 
+                      onClick={handleGoogleLogin}
+                      className="flex h-16 w-full items-center justify-center gap-4 border-2 border-slate-200 bg-white transition-all hover:border-black active:scale-[0.98]"
+                    >
+                      <NextImage alt="Google" width={20} height={20} className="grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZQc-51DbWQ9kHZwKiUJChjRtEFK2EWaopO0s0bPD8r6601FT6YZMjbBfE6HWWC827TASSLXAsIeaYjENuWfXfG31hXiq-ZIZe-wdajElpMSBWTJyoGJY_2-9gK18LjcVXDM88Hidmq-0No5_zWMIUaHpT5S68s2dK-b98-vih2MQeeiYGgzsTpSTuKGOPIO7_N_bh5TMffiywmMXW3JE64OCVLSMWYim06V4bEIRy4K1QL7F4EkxAC8EX5CH-6fdyzr21Fv9xkbEt" />
+                      <span className="text-[13px] font-black uppercase tracking-wider">GOOGLE 계정으로 계속하기</span>
+                    </button>
+
+                    <div className="flex items-center gap-4 py-2">
+                      <div className="h-[1px] flex-1 bg-gray-200"></div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">OR EMAIL ACCESS</span>
+                      <div className="h-[1px] flex-1 bg-gray-200"></div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">EMAIL ADDRESS</label>
+                        <input 
+                          type="email" 
+                          placeholder="COMMANDER@MARS.COM"
+                          className="h-14 w-full border-2 border-gray-100 bg-gray-50 px-4 text-sm font-bold uppercase outline-none focus:border-black"
+                        />
+                      </div>
+                      <button className="h-14 w-full bg-black text-[12px] font-black text-white transition-all hover:bg-gray-900 uppercase tracking-[0.2em]">계속하기</button>
+                    </div>
+
+                    <div className="mt-8 border-2 border-yellow-200 bg-yellow-50 p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 text-yellow-600">⚠️</span>
+                        <div>
+                          <p className="text-[10px] font-black text-yellow-800 uppercase tracking-widest">WARNING: GUEST MODE</p>
+                          <p className="mt-1 text-[10px] font-medium leading-relaxed text-yellow-700">데이터는 브라우저에 임시로 저장됩니다. 기기 간 미션을 동기화하려면 로그인하세요.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest underline decoration-dotted transition-colors hover:text-black">
+                      기타 로그인 방식
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-6 py-8">
+                    <div className="text-center">
+                      <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">현재 로그인 첩부</p>
+                      <p className="mt-2 text-[18px] font-black text-black">{user.email}</p>
+                    </div>
+                    <button 
+                      onClick={signOut}
+                      className="text-[11px] font-black text-red-500 underline decoration-2 underline-offset-4 hover:text-red-700"
+                    >
+                      로그아웃 (SIGN OUT)
+                    </button>
+                    <button 
+                      onClick={handleDailyPlannerClick}
+                      className="mt-4 h-14 w-full border-2 border-black bg-white text-[12px] font-black text-black transition-all hover:bg-black hover:text-white uppercase tracking-[0.2em]"
+                    >
+                      내 플래너로 이동
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </nav>
+      </div>
     </div>
   )
 }
