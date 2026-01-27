@@ -77,7 +77,10 @@ export default function StatsPage() {
           <div className="lg:col-span-8 space-y-8">
             <div className="border-4 border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                <div className="flex flex-col lg:flex-row items-center justify-around gap-8">
-                  <div className="relative size-64 flex-shrink-0">
+                  <button 
+                    onClick={() => setSelectedStat('readiness')}
+                    className="relative size-64 flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer group"
+                  >
                     <svg className="size-full transform -rotate-90">
                       <circle cx="128" cy="128" r="110" stroke="#f3f4f6" strokeWidth="20" fill="none" />
                       <circle
@@ -86,13 +89,17 @@ export default function StatsPage() {
                         strokeDasharray={`${2 * Math.PI * 110}`}
                         strokeDashoffset={`${2 * Math.PI * 110 * (1 - 0.75)}`}
                         strokeLinecap="square"
+                        className="transition-all duration-1000 ease-out"
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-[64px] font-black italic leading-none">75%</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">EFFICIENCY</span>
+                      <span className="text-[64px] font-black italic leading-none">{dailyReadiness}%</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-black transition-colors">EFFICIENCY</span>
                     </div>
-                  </div>
+                    <div className="absolute -bottom-2 bg-black text-white px-2 py-0.5 text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity">
+                      CLICK TO INSPECT
+                    </div>
+                  </button>
                   <div className="text-center lg:text-left">
                     <h2 className="text-[32px] font-black italic tracking-tighter uppercase mb-2">PEAK PERFORMANCE</h2>
                     <p className="text-sm font-bold text-gray-500 uppercase max-w-sm">당신의 집중도는 상위 5%입니다. 오전 10시에서 12시 사이에 가장 높은 효율을 보이고 있습니다.</p>
