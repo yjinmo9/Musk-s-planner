@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import NextImage from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
@@ -8,7 +9,12 @@ export const dynamic = 'force-dynamic'
 
 export default function Home() {
   const router = useRouter()
-  const { user, loading, signOut, signInWithGoogle } = useAuth()
+  const { user, loading, signOut, signInWithGoogle, signInWithKakao, signIn, signUp } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
 
   const handleDailyPlannerClick = () => {
     const today = new Date()
@@ -22,6 +28,32 @@ export default function Home() {
 
   const handleGoogleLogin = async () => {
     await signInWithGoogle()
+  }
+
+  const handleKakaoLogin = async () => {
+    await signInWithKakao()
+  }
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAuthError('')
+    setAuthLoading(true)
+
+    try {
+      const { error } = isSignUp 
+        ? await signUp(email, password)
+        : await signIn(email, password)
+      
+      if (error) {
+        setAuthError(error.message)
+      } else if (isSignUp) {
+        setAuthError('회원가입이 완료되었습니다. 이메일을 확인해주세요.')
+      }
+    } catch (err) {
+      setAuthError('인증 중 오류가 발생했습니다.')
+    } finally {
+      setAuthLoading(false)
+    }
   }
 
   if (loading) {
@@ -103,23 +135,72 @@ export default function Home() {
                       <span className="text-[13px] font-black uppercase tracking-wider">GOOGLE 계정으로 계속하기</span>
                     </button>
 
+                    <button 
+                      onClick={handleKakaoLogin}
+                      className="flex h-16 w-full items-center justify-center gap-4 border-2 border-slate-200 bg-[#FEE500] transition-all hover:border-black active:scale-[0.98]"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3C6.477 3 2 6.477 2 10.75c0 2.764 1.828 5.192 4.56 6.56l-1.174 4.293a.5.5 0 00.746.576l5.06-3.373c.27.02.544.03.82.03 5.523 0 10-3.477 10-7.75S17.523 3 12 3z" fill="#3C1E1E"/>
+                      </svg>
+                      <span className="text-[13px] font-black uppercase tracking-wider text-[#3C1E1E]">KAKAO 계정으로 계속하기</span>
+                    </button>
+
                     <div className="flex items-center gap-4 py-2">
                       <div className="h-[1px] flex-1 bg-gray-200"></div>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">OR EMAIL ACCESS</span>
                       <div className="h-[1px] flex-1 bg-gray-200"></div>
                     </div>
 
-                    <div className="space-y-4">
+                    <form onSubmit={handleEmailAuth} className="space-y-4">
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">EMAIL ADDRESS</label>
                         <input 
                           type="email" 
                           placeholder="COMMANDER@MARS.COM"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
                           className="h-14 w-full border-2 border-gray-100 bg-gray-50 px-4 text-sm font-bold uppercase outline-none focus:border-black"
                         />
                       </div>
-                      <button className="h-14 w-full bg-black text-[12px] font-black text-white transition-all hover:bg-gray-900 uppercase tracking-[0.2em]">계속하기</button>
-                    </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">PASSWORD</label>
+                        <input 
+                          type="password" 
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          className="h-14 w-full border-2 border-gray-100 bg-gray-50 px-4 text-sm font-bold outline-none focus:border-black"
+                        />
+                      </div>
+                      
+                      {authError && (
+                        <div className="border-2 border-red-200 bg-red-50 p-3">
+                          <p className="text-[10px] font-medium text-red-700">{authError}</p>
+                        </div>
+                      )}
+
+                      <button 
+                        type="submit"
+                        disabled={authLoading}
+                        className="h-14 w-full bg-black text-[12px] font-black text-white transition-all hover:bg-gray-900 uppercase tracking-[0.2em] disabled:opacity-50"
+                      >
+                        {authLoading ? '처리 중...' : (isSignUp ? '회원가입' : '계속하기')}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSignUp(!isSignUp)
+                          setAuthError('')
+                        }}
+                        className="w-full text-[10px] font-bold text-gray-500 hover:text-black uppercase tracking-wide underline decoration-dotted"
+                      >
+                        {isSignUp ? '이미 계정이 있으신가요? 로그인' : '계정이 없으신가요? 회원가입'}
+                      </button>
+                    </form>
 
                     <div className="mt-8 border-2 border-yellow-200 bg-yellow-50 p-4">
                       <div className="flex items-start gap-3">
@@ -129,10 +210,6 @@ export default function Home() {
                           <p className="mt-1 text-[10px] font-medium leading-relaxed text-yellow-700">데이터는 브라우저에 임시로 저장됩니다. 기기 간 미션을 동기화하려면 로그인하세요.</p>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="pt-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest underline decoration-dotted transition-colors hover:text-black">
-                      기타 로그인 방식
                     </div>
                   </div>
                 ) : (

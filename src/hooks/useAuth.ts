@@ -47,10 +47,20 @@ export function useAuth() {
     return { data, error }
   }
 
+  const signInWithKakao = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: window.location.origin
+      }
+    })
+    return { data, error }
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     return { error }
   }
 
-  return { user, session, loading, signUp, signIn, signInWithGoogle, signOut }
+  return { user, session, loading, signUp, signIn, signInWithGoogle, signInWithKakao, signOut }
 }
