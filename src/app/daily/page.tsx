@@ -3,16 +3,15 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback, Suspense, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
-import { X, Plus, Check, Settings, ChevronLeft, Calendar as CalendarIcon, ClipboardCheck, LayoutDashboard, BarChart3, GripVertical } from 'lucide-react'
+import { X, Plus, Check, Settings, ChevronLeft, Calendar as CalendarIcon, ClipboardCheck, LayoutDashboard, BarChart3, GripVertical, Maximize2, Minimize2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
 const DEFAULT_COLORS: Record<string, string> = {
-  blue: '#3b82f6',
-  green: '#22c55e',
-  yellow: '#eab308',
-  purple: '#a855f7',
-  pink: '#ec4899'
+  blue: '#93c5fd',
+  green: '#86efac',
+  yellow: '#fde047',
+  purple: '#d8b4fe'
 }
 
 interface TimeBlock {
@@ -73,10 +72,20 @@ function DailyContent() {
   const [completedTasksCount, setCompletedTasksCount] = useState(0);
   const [totalTasksCount, setTotalTasksCount] = useState(0);
   const [streakDays, setStreakDays] = useState(0);
+  
+  // Compact view state for overview mode
+  const [isCompactView, setIsCompactView] = useState(false);
 
 
   const SLOTS_PER_HOUR = 60 / quantum;
   const SLOT_HEIGHT = 144 / SLOTS_PER_HOUR;
+  
+  // Dynamic height for compact view (calculate based on container height and number of hours)
+  // 90vh 컸테이너에서 헤더(~60px)를 제외하고 시간 개수로 나눔
+  const COMPACT_CONTAINER_HEIGHT = typeof window !== 'undefined' ? window.innerHeight * 0.90 - 60 : 800;
+  const COMPACT_HOUR_HEIGHT = isCompactView && hours.length > 0 ? COMPACT_CONTAINER_HEIGHT / hours.length : 60;
+  const currentHourHeight = isCompactView ? COMPACT_HOUR_HEIGHT : 144;
+  const currentSlotHeight = currentHourHeight / SLOTS_PER_HOUR;
 
   const resetInput = useCallback(() => {
     setShowInput(false);
@@ -154,11 +163,15 @@ function DailyContent() {
         const newColorProtocol = settings.color_protocol || [];
         if (newColorProtocol.length > 0) {
           setColorProtocol(newColorProtocol);
-          setColorsMap(newColorProtocol.reduce((acc, c) => ({...acc, [c.id]: c.color}), DEFAULT_COLORS));
+          setColorsMap(newColorProtocol.reduce((acc: Record<string, string>, c: ColorProtocol) => ({...acc, [c.id]: c.color}), {}));
           setSelectedColor(prev => {
-            const exists = newColorProtocol.find(p => p.id === prev);
+            const exists = newColorProtocol.find((p: ColorProtocol) => p.id === prev);
             return exists ? prev : newColorProtocol[0].id;
           });
+        } else {
+          setColorProtocol(defaultProtocol);
+          setColorsMap(DEFAULT_COLORS);
+          setSelectedColor('blue');
         }
       }
       
@@ -211,6 +224,28 @@ function DailyContent() {
       setStreakDays(currentStreak);
 
     } else {
+      // Guest mode - load from localStorage
+      const savedSettings = localStorage.getItem('musk-settings-guest');
+      if (savedSettings) {
+        try {
+          const guestSettings = JSON.parse(savedSettings);
+          if (guestSettings.color_protocol && guestSettings.color_protocol.length > 0) {
+            setColorProtocol(guestSettings.color_protocol);
+            setColorsMap(guestSettings.color_protocol.reduce((acc: Record<string, string>, c: ColorProtocol) => ({...acc, [c.id]: c.color}), {}));
+            setSelectedColor(prev => {
+              const exists = guestSettings.color_protocol.find((p: ColorProtocol) => p.id === prev);
+              return exists ? prev : guestSettings.color_protocol[0].id;
+            });
+          } else {
+            setColorProtocol(defaultProtocol);
+            setColorsMap(DEFAULT_COLORS);
+            setSelectedColor('blue');
+          }
+        } catch (e) {
+          console.error('Failed to parse guest settings', e);
+        }
+      }
+      
       const savedData = localStorage.getItem(`guest_planner_${dateString}`);
       const guestPlannerData = savedData ? JSON.parse(savedData) : { mainThings: [], brainDump: '', timeBlocks: [], completed: false };
       setPlannerData(guestPlannerData);
@@ -221,7 +256,7 @@ function DailyContent() {
       setMissionReadiness(total > 0 ? Math.round((completed / total) * 100) : 0);
       setStreakDays(0);
     }
-  }, [user, dateParam, supabase, mergeTimeBlocks]);
+  }, [user, dateParam, supabase, mergeTimeBlocks, defaultProtocol]);
 
   useEffect(() => { 
     if (!authLoading) {
@@ -229,11 +264,64 @@ function DailyContent() {
     }
   }, [authLoading, dateParam, user, fetchData]);
 
+  // Reload settings when they change (via CustomEvent or periodic check)
+  useEffect(() => {
+    const checkAndUpdateColors = async () => {
+      if (user) {
+        // Logged-in user: fetch from Supabase
+        const { data: settings } = await supabase.from('user_settings').select('color_protocol').single();
+        if (settings?.color_protocol) {
+          const newColorProtocol = settings.color_protocol;
+          if (newColorProtocol.length > 0) {
+            setColorProtocol(newColorProtocol);
+            setColorsMap(newColorProtocol.reduce((acc: Record<string, string>, c: ColorProtocol) => ({...acc, [c.id]: c.color}), {}));
+            setSelectedColor(prev => {
+              const exists = newColorProtocol.find((p: ColorProtocol) => p.id === prev);
+              return exists ? prev : newColorProtocol[0].id;
+            });
+          }
+        }
+      } else {
+        // Guest mode: fetch from localStorage
+        const savedSettings = localStorage.getItem('musk-settings-guest');
+        if (savedSettings) {
+          try {
+            const guestSettings = JSON.parse(savedSettings);
+            if (guestSettings.color_protocol && guestSettings.color_protocol.length > 0) {
+              setColorProtocol(guestSettings.color_protocol);
+              setColorsMap(guestSettings.color_protocol.reduce((acc: Record<string, string>, c: ColorProtocol) => ({...acc, [c.id]: c.color}), {}));
+              setSelectedColor(prev => {
+                const exists = guestSettings.color_protocol.find((p: ColorProtocol) => p.id === prev);
+                return exists ? prev : guestSettings.color_protocol[0].id;
+              });
+            }
+          } catch (e) {
+            console.error('Failed to parse guest settings', e);
+          }
+        }
+      }
+    };
+
+    // Check for updates every 2 seconds
+    const interval = setInterval(checkAndUpdateColors, 2000);
+
+    // Listen for custom event from Settings page
+    const handleColorProtocolUpdate = () => {
+      checkAndUpdateColors();
+    };
+
+    window.addEventListener('colorProtocolUpdated', handleColorProtocolUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('colorProtocolUpdated', handleColorProtocolUpdate);
+    };
+  }, [user, supabase]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (isDragging) { setIsDragging(false); setDragStartAbs(null); setDragEndAbs(null); }
-        if (showInput) { resetInput(); }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -367,14 +455,14 @@ function DailyContent() {
           <div className="space-y-6 lg:col-span-3">
              <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="mb-6 flex items-center justify-between"><h3 className="text-sm font-black uppercase italic tracking-tighter">주요 과업</h3><button onClick={addMainTask} className="border-2 border-black p-1 hover:bg-black hover:text-white transition-all"><Plus className="w-4 h-4 stroke-[3px]" /></button></div>
-                <div className="space-y-3">{plannerData.mainThings.map((task, index) => (<div key={index} className="group flex items-center gap-3"><button onClick={() => toggleMainTask(index)} className={`flex size-6 shrink-0 items-center justify-center border-2 border-black transition-all ${task.completed ? 'bg-black text-white' : 'bg-white'}`}>{task.completed && <Check className="w-4 h-4 stroke-[4px]" />}</button><input className={`flex-1 bg-transparent text-[13px] font-bold outline-none uppercase ${task.completed ? 'line-through text-gray-400' : 'text-black'}`} value={task.text} onChange={(e) => updateMainTaskText(index, e.target.value)} onBlur={saveData}/></div>))}</div>
+                <div className="space-y-3">{plannerData.mainThings.map((task, index) => (<div key={index} className="group flex items-center gap-3 border-b-2 border-black/5 pb-2"><button onClick={() => toggleMainTask(index)} className={`flex size-6 shrink-0 items-center justify-center border-2 border-black transition-all ${task.completed ? 'bg-black text-white' : 'bg-white'}`}>{task.completed && <Check className="w-4 h-4 stroke-[4px]" />}</button><input className={`flex-1 bg-transparent text-[13px] font-bold outline-none uppercase ${task.completed ? 'line-through text-gray-400' : 'text-black'}`} value={task.text} onChange={(e) => updateMainTaskText(index, e.target.value)} onBlur={saveData} placeholder="전략 지점 입력..."/><button onClick={() => { setPlannerData(prev => ({...prev, mainThings: prev.mainThings.filter((_, i) => i !== index)})); setTimeout(saveData, 100); }} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-600"><X className="w-4 h-4 stroke-[3px]" /></button></div>))}</div>
              </div>
              <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <h3 className="mb-4 text-sm font-black uppercase italic tracking-tighter">브레인 덤프</h3><textarea className="h-48 w-full resize-none bg-gray-50 p-4 text-[13px] font-medium leading-relaxed outline-none border-2 border-transparent focus:border-black transition-all" value={plannerData.brainDump} onChange={(e) => setPlannerData(prev => ({ ...prev, brainDump: e.target.value }))} onBlur={saveData} placeholder="모든 생각을 쏟아내세요..."/>
              </div>
           </div>
           <div className="lg:col-span-6">
-            <div className="relative border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col h-[75vh]">
+            <div className={`relative border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col ${isCompactView ? 'h-[90vh]' : 'h-[75vh]'}`}>
               <div className="border-b-4 border-black p-4 flex items-center justify-between bg-white shrink-0">
                  <h2 className="text-lg font-black italic tracking-tighter uppercase">타임 플랜</h2>
                   <div className="flex gap-2">
@@ -387,14 +475,22 @@ function DailyContent() {
                         title={c.label}
                       />
                     ))}
+                    {/* 모아보기 토글 버튼 */}
+                    <button 
+                      onClick={() => setIsCompactView(!isCompactView)}
+                      className="size-6 border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all ml-2"
+                      title={isCompactView ? '상세보기' : '모아보기'}
+                    >
+                      {isCompactView ? <Minimize2 className="w-3 h-3 stroke-[3px]" /> : <Maximize2 className="w-3 h-3 stroke-[3px]" />}
+                    </button>
                   </div>
               </div>
-              <div className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar" onContextMenu={(e) => e.preventDefault()}>
+              <div className={`flex-1 ${isCompactView ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden hide-scrollbar'}`} onContextMenu={(e) => e.preventDefault()}>
                 <div className="relative w-full">
                   {hours.map((hour) => (
-                    <div key={hour} className="flex border-b border-black last:border-b-0 h-[144px]">
-                      <div className="w-16 shrink-0 flex flex-col items-center justify-start pt-2 border-r border-black bg-gray-50/50">
-                        <span className="text-[14px] font-black italic text-black/60">{String(hour).padStart(2, '0')}</span>
+                    <div key={hour} className="flex border-b border-black last:border-b-0" style={{ height: `${currentHourHeight}px` }}>
+                      <div className="w-16 shrink-0 flex flex-col items-center justify-start pt-1 border-r border-black bg-gray-50/50">
+                        <span className={`font-black italic text-black/60 ${isCompactView ? 'text-[10px]' : 'text-[14px]'}`}>{String(hour).padStart(2, '0')}</span>
                       </div>
                       <div className="flex-1 relative">
                         <div className="absolute inset-0 grid" style={{ gridTemplateRows: `repeat(${SLOTS_PER_HOUR}, 1fr)` }}>
@@ -408,12 +504,12 @@ function DailyContent() {
                   {plannerData.timeBlocks.map((block) => {
                     const hIdx = hours.indexOf(block.hour);
                     if (hIdx === -1) return null;
-                    const top = hIdx * 144 + (block.startMinute / quantum) * SLOT_HEIGHT;
-                    const height = (block.duration / quantum) * SLOT_HEIGHT;
+                    const top = hIdx * currentHourHeight + (block.startMinute / quantum) * currentSlotHeight;
+                    const height = (block.duration / quantum) * currentSlotHeight;
                     return (
-                      <div key={block.id} className="absolute left-16 right-0 border-2 border-black p-2 transition-all hover:brightness-95 group cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-10" style={{ top: `${top}px`, height: `${height}px`, backgroundColor: colorsMap[block.color] || '#333', color: 'white' }} onMouseDown={(e) => { e.stopPropagation(); if (e.button === 2) { deleteBlock(block.id); } else { handleMouseDown(e, block.hour, block.startMinute/quantum)} }}>
+                      <div key={block.id} className={`absolute left-16 right-0 border-2 border-black transition-all hover:brightness-95 group cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-10 ${isCompactView ? 'p-1' : 'p-2'}`} style={{ top: `${top}px`, height: `${height}px`, backgroundColor: colorsMap[block.color] || '#333', color: 'white' }} onMouseDown={(e) => { e.stopPropagation(); if (e.button === 2) { deleteBlock(block.id); } else { handleMouseDown(e, block.hour, block.startMinute/quantum)} }}>
                         <div className="flex h-full flex-col justify-start gap-1">
-                          <p className="text-[11px] font-black uppercase leading-[1.1] line-clamp-3">{block.content}</p>
+                          <p className={`font-black uppercase leading-tight text-black ${isCompactView ? 'text-base line-clamp-1' : 'text-base line-clamp-2'}`}>{block.content}</p>
                           <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity mt-auto italic">
                             <span className="text-[8px] font-black bg-black/20 px-1">{block.duration} MIN</span>
                             <button 
@@ -428,7 +524,7 @@ function DailyContent() {
                       </div>
                     )
                   })}
-                  {isDragging && dragStartAbs !== null && (<div className="absolute left-16 right-0 border-4 border-dashed border-black bg-black/10 z-20 pointer-events-none" style={{ top: `${Math.min(dragStartAbs, dragEndAbs ?? dragStartAbs) * SLOT_HEIGHT}px`, height: `${(Math.abs((dragEndAbs ?? dragStartAbs) - dragStartAbs) + 1) * SLOT_HEIGHT}px` }}/>)}
+                  {isDragging && dragStartAbs !== null && (<div className="absolute left-16 right-0 border-4 border-dashed border-black bg-black/10 z-20 pointer-events-none" style={{ top: `${Math.min(dragStartAbs, dragEndAbs ?? dragStartAbs) * currentSlotHeight}px`, height: `${(Math.abs((dragEndAbs ?? dragStartAbs) - dragStartAbs) + 1) * currentSlotHeight}px` }}/>)}
                 </div>
               </div>
             </div>

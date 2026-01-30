@@ -52,11 +52,10 @@ const DEFAULTS: UserSettings = {
   day_end: '22:00',
   time_box_interval: 10,
   color_protocol: [
-    { id: 'blue', color: '#3b82f6', label: 'DEEP WORK' },
-    { id: 'green', color: '#22c55e', label: 'LEARNING' },
-    { id: 'yellow', color: '#eab308', label: 'CHORES' },
-    { id: 'purple', color: '#a855f7', label: 'MEETING' },
-    { id: 'pink', color: '#ec4899', label: 'PERSONAL' },
+    { id: 'blue', color: '#93c5fd', label: 'DEEP WORK' },
+    { id: 'green', color: '#86efac', label: 'LEARNING' },
+    { id: 'yellow', color: '#fde047', label: 'CHORES' },
+    { id: 'purple', color: '#d8b4fe', label: 'MEETING' },
   ],
   theme: 'light',
   push_notifications: true,
@@ -64,13 +63,17 @@ const DEFAULTS: UserSettings = {
   intensity_mode: true,
 };
 
-// For adding new colors
+// Available colors for adding
 const AVAILABLE_COLORS = [
-  { id: 'red', color: '#ef4444' },
-  { id: 'orange', color: '#f97316' },
-  { id: 'teal', color: '#14b8a6' },
-  { id: 'indigo', color: '#6366f1' },
-  { id: 'gray', color: '#6b7280' },
+  { id: 'blue', color: '#93c5fd' },
+  { id: 'green', color: '#86efac' },
+  { id: 'yellow', color: '#fde047' },
+  { id: 'purple', color: '#d8b4fe' },
+  { id: 'red', color: '#fca5a5' },
+  { id: 'orange', color: '#fdba74' },
+  { id: 'teal', color: '#5eead4' },
+  { id: 'indigo', color: '#a5b4fc' },
+  { id: 'gray', color: '#d1d5db' },
 ];
 
 export default function SettingsPage() {
@@ -132,6 +135,11 @@ export default function SettingsPage() {
 
     const { error } = await supabase.from('user_settings').update(newSettings).eq('user_id', user.id);
     if (error) console.error('Error updating settings:', error);
+    
+    // Notify other pages about color protocol changes via CustomEvent
+    if (newSettings.color_protocol) {
+      window.dispatchEvent(new CustomEvent('colorProtocolUpdated'));
+    }
   }, [user, supabase, settings]);
 
   const handleCallSignSave = async (e: React.FormEvent) => {
@@ -286,7 +294,7 @@ export default function SettingsPage() {
                 {isAddingColor ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                        {AVAILABLE_COLORS.filter(ac => !settings.color_protocol.some(c => c.id === ac.id)).map(color => (
+                        {AVAILABLE_COLORS.filter((ac: {id: string, color: string}) => !settings.color_protocol.some(c => c.id === ac.id)).map((color: {id: string, color: string}) => (
                             <button key={color.id} onClick={() => setNewColor(color)} className={`size-6 border-2 transition-all ${newColor.id === color.id ? 'border-black scale-110' : 'border-gray-200'}`} style={{backgroundColor: color.color}}></button>
                         ))}
                     </div>
@@ -308,6 +316,7 @@ export default function SettingsPage() {
                   </button>
                 )}
               </div>
+
           </div>
       </Modal>
 

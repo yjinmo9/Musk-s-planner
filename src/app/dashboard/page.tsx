@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
-import { LayoutDashboard, Search, Plus, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Search, Plus, Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -259,6 +259,15 @@ export default function Dashboard() {
                            onBlur={saveMonthlyPlan}
                            placeholder="전략 지점 입력..."
                         />
+                        <button 
+                          onClick={() => { 
+                            setMonthlyPlans(prev => prev.filter((_, i) => i !== index)); 
+                            setTimeout(saveMonthlyPlan, 100); 
+                          }} 
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-600"
+                        >
+                          <X className="w-4 h-4 stroke-[3px]" />
+                        </button>
                       </div>
                     ))}
                   </div>
