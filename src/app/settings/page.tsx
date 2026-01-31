@@ -270,8 +270,47 @@ export default function SettingsPage() {
       </div>
 
       {/* --- MODALS --- */}
-      <Modal isOpen={activeModal === 'dayCycle'} onClose={() => setActiveModal(null)} title="하루 주기 설정">{/* ... */}</Modal>
-      <Modal isOpen={activeModal === 'timeQuantum'} onClose={() => setActiveModal(null)} title="시간 단위 선택">{/* ... */}</Modal>
+      <Modal isOpen={activeModal === 'dayCycle'} onClose={() => setActiveModal(null)} title="하루 주기 설정">
+        <div className="space-y-6 text-black">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">START HOUR</label>
+              <select 
+                value={parseInt(settings.day_start.split(':')[0])}
+                onChange={(e) => updateSettings({ day_start: `${String(e.target.value).padStart(2, '0')}:00` })}
+                className="w-full h-12 border-2 border-black font-black outline-none px-4 appearance-none hover:bg-gray-50 cursor-pointer"
+              >
+                {Array.from({length: 24}).map((_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>)}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">END HOUR</label>
+              <select 
+                value={parseInt(settings.day_end.split(':')[0])}
+                onChange={(e) => updateSettings({ day_end: `${String(e.target.value).padStart(2, '0')}:00` })}
+                className="w-full h-12 border-2 border-black font-black outline-none px-4 appearance-none hover:bg-gray-50 cursor-pointer"
+              >
+                {Array.from({length: 24}).map((_, i) => <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>)}
+              </select>
+            </div>
+          </div>
+          <p className="text-[10px] text-gray-400 font-bold uppercase leading-tight italic">* 시작 시간이 종료 시간보다 늦을 경우 다음날로 이월되어 표시됩니다.</p>
+        </div>
+      </Modal>
+
+      <Modal isOpen={activeModal === 'timeQuantum'} onClose={() => setActiveModal(null)} title="시간 단위 선택">
+        <div className="grid grid-cols-3 gap-2">
+          {[10, 15, 30].map((q) => (
+            <button 
+              key={q}
+              onClick={() => updateSettings({ time_box_interval: q })}
+              className={`h-16 border-2 border-black font-black transition-all ${settings.time_box_interval === q ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]' : 'bg-white text-black hover:bg-gray-100'}`}
+            >
+              {q} MIN
+            </button>
+          ))}
+        </div>
+      </Modal>
       
       <Modal isOpen={activeModal === 'colorProtocol'} onClose={() => setActiveModal(null)} title="카테고리 프로토콜">
           <div className="space-y-4 text-black">

@@ -81,11 +81,14 @@ function DailyContent() {
   const SLOT_HEIGHT = 144 / SLOTS_PER_HOUR;
   
   // Dynamic height for compact view (calculate based on container height and number of hours)
-  // 90vh 컸테이너에서 헤더(~60px)를 제외하고 시간 개수로 나눔
+  // 90vh 컨테이너에서 헤더(~60px)를 제외하고 시간 개수로 나눔
   const COMPACT_CONTAINER_HEIGHT = typeof window !== 'undefined' ? window.innerHeight * 0.90 - 60 : 800;
   const COMPACT_HOUR_HEIGHT = isCompactView && hours.length > 0 ? COMPACT_CONTAINER_HEIGHT / hours.length : 60;
   const currentHourHeight = isCompactView ? COMPACT_HOUR_HEIGHT : 144;
-  const currentSlotHeight = currentHourHeight / SLOTS_PER_HOUR;
+  // 실제 계산된 슬롯 높이 (블록 높이 계산에 사용)
+  const calculatedSlotHeight = currentHourHeight / SLOTS_PER_HOUR;
+  // 그리드 렌더링용 슬롯 높이 (최소 높이 보장하여 클릭 영역 확보)
+  const currentSlotHeight = isCompactView ? Math.max(calculatedSlotHeight, 16) : calculatedSlotHeight;
 
   const resetInput = useCallback(() => {
     setShowInput(false);
@@ -398,11 +401,6 @@ function DailyContent() {
     const end = Math.max(dragStartAbs, endAbs);
     
     setIsDragging(false);
-
-    if (start === end) { 
-      resetInput();
-      return;
-    }
     
     const hasConflict = plannerData.timeBlocks.some(block => {
       const bStart = getAbsSlot(block.hour, block.startMinute / quantum);
@@ -489,8 +487,8 @@ function DailyContent() {
                 <div className="relative w-full">
                   {hours.map((hour) => (
                     <div key={hour} className="flex border-b border-black dark:border-white/20 last:border-b-0" style={{ height: `${currentHourHeight}px` }}>
-                      <div className="w-16 shrink-0 flex flex-col items-center justify-start pt-1 border-r border-black dark:border-white/20 bg-gray-50/50 dark:bg-zinc-800/50">
-                        <span className={`font-black italic text-black/60 dark:text-white/60 ${isCompactView ? 'text-[10px]' : 'text-[14px]'}`}>{String(hour).padStart(2, '0')}</span>
+                      <div className={`w-16 shrink-0 flex flex-col items-center justify-start border-r border-black dark:border-white/20 bg-gray-50/50 dark:bg-zinc-800/50 ${isCompactView ? 'pt-[3px]' : 'pt-1'}`}>
+                        <span className={`font-black italic text-black/60 dark:text-white/60 leading-none ${isCompactView ? 'text-[10px]' : 'text-[14px]'}`}>{String(hour).padStart(2, '0')}</span>
                       </div>
                       <div className="flex-1 relative">
                         <div className="absolute inset-0 grid" style={{ gridTemplateRows: `repeat(${SLOTS_PER_HOUR}, 1fr)` }}>
@@ -504,15 +502,24 @@ function DailyContent() {
                   {plannerData.timeBlocks.map((block) => {
                     const hIdx = hours.indexOf(block.hour);
                     if (hIdx === -1) return null;
-                    const top = hIdx * currentHourHeight + (block.startMinute / quantum) * currentSlotHeight;
-                    const height = (block.duration / quantum) * currentSlotHeight;
+                    // 블록 위치와 높이는 실제 계산된 슬롯 높이 사용 (시간대에 맞게 축소)
+                    const top = hIdx * currentHourHeight + (block.startMinute / quantum) * calculatedSlotHeight;
+                    const height = (block.duration / quantum) * calculatedSlotHeight;
+                    const slotCount = block.duration / quantum;
+                    // 작은 블록에 대한 특수 처리
+                    const isVerySmall = slotCount <= 2;
+                    const isSmall = slotCount <= 3;
                     return (
-                      <div key={block.id} className={`absolute left-16 right-0 border-2 border-black transition-all hover:brightness-95 group cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-10 ${isCompactView ? 'p-1' : 'p-2'}`} style={{ top: `${top}px`, height: `${height}px`, backgroundColor: colorsMap[block.color] || '#333', color: 'white' }} onMouseDown={(e) => { e.stopPropagation(); if (e.button === 2) { deleteBlock(block.id); } else { handleMouseDown(e, block.hour, block.startMinute/quantum)} }}>
-                        <div className="flex h-full flex-col justify-start gap-1">
-                          <p className={`font-black uppercase leading-tight text-black ${isCompactView ? 'text-base line-clamp-1' : 'text-base line-clamp-2'}`}>{block.content}</p>
-                          <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity mt-auto italic">
-                            <span className="text-[8px] font-black bg-black/20 px-1">{block.duration} MIN</span>
-                            <button 
+                      <div key={block.id} className={`absolute left-16 right-0 transition-all hover:brightness-95 group cursor-pointer z-10 ${isCompactView ? (isSmall ? 'border border-black px-1 py-0 overflow-visible shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'border-2 border-black px-2 py-0.5 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]') : 'border-2 border-black p-3 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`} style={{ top: `${top}px`, height: `${height}px`, backgroundColor: colorsMap[block.color] || '#333', color: 'white' }} onMouseDown={(e) => { e.stopPropagation(); if (e.button === 2) { deleteBlock(block.id); } else { handleMouseDown(e, block.hour, block.startMinute/quantum)} }}>
+                        {/* 매우 작은 블록(1-2칸)에서는 텍스트 숨김, 3칸 이상부터 표시 */}
+                        {!(isCompactView && isVerySmall) && (
+                          <div className={`flex h-full flex-col justify-start gap-0 ${isCompactView ? (isSmall ? 'pt-[2px] pl-[7px]' : 'pt-[1px] pl-[6px]') : 'pt-0'}`}>
+                            <p className={`font-black uppercase leading-none text-black ${isCompactView ? 'text-[10px]' : 'text-base'} ${isCompactView ? 'line-clamp-1' : 'line-clamp-2'}`}>{block.content}</p>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity mt-auto italic absolute bottom-0 left-0 right-0 px-1">
+                          <span className="text-[8px] font-black bg-black/20 px-1">{block.duration} MIN</span>
+                          <button 
                               onMouseDown={(e) => e.stopPropagation()} 
                               onClick={(e) => { e.stopPropagation(); deleteBlock(block.id); }} 
                               className="text-white hover:text-red-400 p-1 transition-colors"
@@ -520,7 +527,6 @@ function DailyContent() {
                               <X className="w-3 h-3 stroke-[4px]" />
                             </button>
                           </div>
-                        </div>
                       </div>
                     )
                   })}
