@@ -121,16 +121,24 @@ export default function Dashboard() {
     const lastDate = new Date(year, month, 0).getDate()
     const days: { date: number; monthOffset: number }[] = []
 
+    // Add previous month's trailing days
     const prevMonthLastDate = new Date(year, month - 1, 0).getDate()
     for (let i = firstDay - 1; i >= 0; i--) {
       days.push({ date: prevMonthLastDate - i, monthOffset: -1 })
     }
 
+    // Add current month's days
     for (let i = 1; i <= lastDate; i++) {
       days.push({ date: i, monthOffset: 0 })
     }
 
-    const remainingDays = 42 - days.length
+    // Calculate how many weeks we need (minimum to show all current month dates)
+    const totalDaysUsed = firstDay + lastDate
+    const weeksNeeded = Math.ceil(totalDaysUsed / 7)
+    const totalCells = weeksNeeded * 7
+
+    // Add next month's days only to fill the last week
+    const remainingDays = totalCells - days.length
     for (let i = 1; i <= remainingDays; i++) {
       days.push({ date: i, monthOffset: 1 })
     }
@@ -177,25 +185,25 @@ export default function Dashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-white"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#f8f8f8] p-4 md:p-8">
+    <div className="min-h-screen w-full bg-[#f8f8f8] dark:bg-zinc-950 p-4 md:p-8 transition-colors duration-300">
       <div className="mx-auto max-w-7xl">
         
         {/* Responsive Header */}
-        <div className="mb-8 flex items-end justify-between border-b-4 border-black pb-6">
+        <div className="mb-8 flex items-end justify-between border-b-4 border-black dark:border-white pb-6">
           <div className="flex items-center gap-4">
-             <div className="bg-black p-3 text-white">
+             <div className="bg-black dark:bg-white p-3 text-white dark:text-black">
                 <LayoutDashboard className="size-8" />
              </div>
              <div>
                 <h1 className="text-[32px] font-black italic tracking-tighter uppercase leading-none">BIG PICTURE</h1>
-                <p className="mt-1 text-xs font-bold text-gray-500 uppercase tracking-widest">Monthly Mission Control & Strategy</p>
+                <p className="mt-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Monthly Mission Control & Strategy</p>
              </div>
           </div>
           <div className="hidden lg:flex items-center gap-4">
@@ -203,7 +211,7 @@ export default function Dashboard() {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CURRENT FOCUS</p>
                 <p className="text-xl font-black italic uppercase">{new Date(selectedYear, selectedMonth - 1).toLocaleString('en-US', { month: 'long' })} {selectedYear}</p>
              </div>
-             <button className="flex size-12 items-center justify-center border-4 border-black bg-white hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none">
+             <button className="flex size-12 items-center justify-center border-4 border-black dark:border-white bg-white dark:bg-zinc-900 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none">
                 <Search className="size-6" />
              </button>
           </div>
@@ -211,20 +219,20 @@ export default function Dashboard() {
 
         {/* Guest Mode Banner */}
         {!user && (
-          <div className="mb-8 border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="mb-8 border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-start gap-4">
-                 <div className="bg-yellow-400 p-2 border-2 border-black">
+                 <div className="bg-yellow-400 p-2 border-2 border-black dark:border-white">
                     <span className="text-xl">⚠️</span>
                  </div>
                  <div>
                     <p className="text-lg font-black uppercase italic tracking-tighter">게스트 모드 활성화됨</p>
-                    <p className="text-sm font-bold text-gray-500 uppercase">기기 간 미션을 동기화하고 전략을 보관하려면 로그인이 필요합니다.</p>
+                    <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase">기기 간 미션을 동기화하고 전략을 보관하려면 로그인이 필요합니다.</p>
                  </div>
               </div>
               <button 
                 onClick={signInWithGoogle}
-                className="h-14 min-w-[200px] border-4 border-black bg-black text-white text-sm font-black uppercase italic tracking-[0.2em] hover:bg-slate-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-x-[-4px] translate-y-[-4px] active:translate-x-0 active:translate-y-0"
+                className="h-14 min-w-[200px] border-4 border-black dark:border-white bg-black dark:bg-white text-white dark:text-black text-sm font-black uppercase italic tracking-[0.2em] hover:bg-slate-800 dark:hover:bg-gray-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] active:shadow-none translate-x-[-4px] translate-y-[-4px] active:translate-x-0 active:translate-y-0"
               >
                 구글로 지금 동기화
               </button>
@@ -236,24 +244,24 @@ export default function Dashboard() {
           
           {/* Monthly Plans (lg:col-span-12 or 5) */}
           <div className="lg:col-span-5 space-y-6">
-             <div className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+             <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-sm font-black uppercase italic tracking-tighter">이달의 계획 (MONTHLY STRATEGY)</h3>
-                    <button onClick={addPlan} className="border-2 border-black p-1 hover:bg-black hover:text-white transition-all">
+                    <button onClick={addPlan} className="border-2 border-black dark:border-white p-1 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all">
                       <Plus className="w-4 h-4 stroke-[3px]" />
                     </button>
                   </div>
                   <div className="space-y-3">
                     {monthlyPlans.map((plan, index) => (
-                      <div key={index} className="group flex items-center gap-3 border-b-2 border-black/5 pb-2">
+                      <div key={index} className="group flex items-center gap-3 border-b-2 border-black/5 dark:border-white/5 pb-2">
                         <button 
                           onClick={() => togglePlan(index)}
-                          className={`flex size-6 shrink-0 items-center justify-center border-2 border-black transition-all ${plan.completed ? 'bg-black text-white' : 'bg-white'}`}
+                          className={`flex size-6 shrink-0 items-center justify-center border-2 border-black dark:border-white transition-all ${plan.completed ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-white dark:bg-zinc-900'}`}
                         >
                           {plan.completed && <Check className="w-4 h-4 stroke-[4px]" />}
                         </button>
                         <input 
-                           className={`flex-1 bg-transparent text-[13px] font-bold outline-none uppercase ${plan.completed ? 'line-through text-gray-400' : 'text-black'}`}
+                           className={`flex-1 bg-transparent text-[13px] font-bold outline-none uppercase ${plan.completed ? 'line-through text-gray-400' : 'text-black dark:text-white'}`}
                            value={plan.text}
                            onChange={(e) => updatePlanText(index, e.target.value)}
                            onBlur={saveMonthlyPlan}
@@ -264,7 +272,7 @@ export default function Dashboard() {
                             setMonthlyPlans(prev => prev.filter((_, i) => i !== index)); 
                             setTimeout(saveMonthlyPlan, 100); 
                           }} 
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-600"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-600 dark:hover:text-red-400"
                         >
                           <X className="w-4 h-4 stroke-[3px]" />
                         </button>
@@ -276,28 +284,28 @@ export default function Dashboard() {
 
           {/* Calendar (lg:col-span-7) */}
           <div className="lg:col-span-7">
-             <div className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <div className="flex justify-between items-center mb-8 pb-4 border-b-2 border-black">
+             <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+                <div className="flex justify-between items-center mb-8 pb-4 border-b-2 border-black dark:border-white">
                   <h3 className="text-xl font-black italic tracking-tighter uppercase">{selectedYear}년 {selectedMonth}월</h3>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => changeMonth(-1)}
-                      className="size-10 flex items-center justify-center border-2 border-black hover:bg-black hover:text-white transition-colors"
+                      className="size-10 flex items-center justify-center border-2 border-black dark:border-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-colors"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button 
                       onClick={() => changeMonth(1)}
-                      className="size-10 flex items-center justify-center border-2 border-black hover:bg-black hover:text-white transition-colors"
+                      className="size-10 flex items-center justify-center border-2 border-black dark:border-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-colors"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-px bg-black border-2 border-black">
+                <div className="grid grid-cols-7 gap-px bg-black dark:bg-white border-2 border-black dark:border-white">
                   {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day, i) => (
-                    <div key={i} className="bg-gray-50 py-2 text-center text-[10px] font-black text-gray-400 uppercase">{day}</div>
+                    <div key={i} className="bg-gray-50 dark:bg-zinc-800 py-2 text-center text-[10px] font-black text-gray-400 uppercase">{day}</div>
                   ))}
                   
                   {getCalendarDays(selectedYear, selectedMonth).map((day, index) => {
@@ -308,15 +316,15 @@ export default function Dashboard() {
                       <div
                         key={index}
                         onClick={() => handleDateClick(day)}
-                        className={`relative aspect-square flex flex-col items-center justify-center cursor-pointer transition-all hover:z-10 bg-white group ${
-                          day.monthOffset !== 0 ? 'opacity-20 bg-gray-100 hover:opacity-100 hover:bg-white' : 'hover:bg-black hover:text-white'
-                        } ${isToday ? 'ring-4 ring-inset ring-black' : ''}`}
+                        className={`relative aspect-square flex flex-col items-center justify-center cursor-pointer transition-all hover:z-10 bg-white dark:bg-zinc-900 group ${
+                          day.monthOffset !== 0 ? 'opacity-20 bg-gray-100 dark:bg-zinc-800 hover:opacity-100 hover:bg-white dark:hover:bg-zinc-900' : 'hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black'
+                        } ${isToday ? 'ring-4 ring-inset ring-black dark:ring-white' : ''}`}
                       >
                         <span className="text-sm font-black italic">{day.date}</span>
                         {completed && (
                           <div className="absolute top-2 right-2 size-2 bg-green-500 rounded-full"></div>
                         )}
-                        <div className="absolute inset-0 border border-black/5"></div>
+                        <div className="absolute inset-0 border border-black/5 dark:border-white/5"></div>
                       </div>
                     )
                   })}
