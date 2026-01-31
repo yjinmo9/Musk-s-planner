@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
 import { 
   Bell, 
@@ -41,7 +42,6 @@ type UserSettings = {
   day_end: string;
   time_box_interval: number;
   color_protocol: Color[];
-  theme: 'light' | 'dark';
   push_notifications: boolean;
   haptic_feedback: boolean;
   intensity_mode: boolean;
@@ -57,7 +57,6 @@ const DEFAULTS: UserSettings = {
     { id: 'yellow', color: '#fde047', label: 'CHORES' },
     { id: 'purple', color: '#d8b4fe', label: 'MEETING' },
   ],
-  theme: 'light',
   push_notifications: true,
   haptic_feedback: false,
   intensity_mode: true,
@@ -78,6 +77,7 @@ const AVAILABLE_COLORS = [
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const supabase = createClient();
   const router = useRouter();
 
@@ -95,13 +95,15 @@ export default function SettingsPage() {
   const [newColorLabel, setNewColorLabel] = useState('');
 
 
+
   const fetchSettings = useCallback(async () => {
     if (!user) {
       const saved = localStorage.getItem('musk-settings-guest');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          setSettings({ ...DEFAULTS, ...parsed });
+          const { theme: _, ...settingsWithoutTheme } = parsed;
+          setSettings({ ...DEFAULTS, ...settingsWithoutTheme });
         } catch (e) { console.error("Failed to load guest settings.", e); }
       }
       setIsLoaded(true);
@@ -112,7 +114,8 @@ export default function SettingsPage() {
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching settings:', error);
     } else if (data) {
-      setSettings({ ...DEFAULTS, ...data, color_protocol: data.color_protocol || DEFAULTS.color_protocol });
+      const { theme: _, ...dataWithoutTheme } = data;
+      setSettings({ ...DEFAULTS, ...dataWithoutTheme, color_protocol: data.color_protocol || DEFAULTS.color_protocol });
     } else {
       const { error: insertError } = await supabase.from('user_settings').insert({ user_id: user.id, ...DEFAULTS });
       if (insertError) console.error('Error creating initial settings:', insertError);
@@ -184,12 +187,12 @@ export default function SettingsPage() {
     </button>
   );
 
-  if (!isLoaded) return <div className={`min-h-screen w-full p-4 md:p-8 transition-colors duration-300 ${settings.theme === 'dark' ? 'bg-zinc-950' : 'bg-[#f8f8f8]'}`}></div>;
+  if (!isLoaded) return <div className="min-h-screen w-full p-4 md:p-8 transition-colors duration-300 bg-[#f8f8f8] dark:bg-zinc-950"></div>;
 
   return (
-    <div className={`min-h-screen w-full p-4 md:p-8 transition-colors duration-300 ${settings.theme === 'dark' ? 'bg-zinc-950 text-white' : 'bg-[#f8f8f8] text-black'}`}>
+    <div className="min-h-screen w-full p-4 md:p-8 transition-colors duration-300 bg-[#f8f8f8] dark:bg-zinc-950 text-black dark:text-white">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex items-end justify-between border-b-4 border-black pb-6">
+        <div className="mb-8 flex items-end justify-between border-b-4 border-black dark:border-white pb-6">
           {/* Header */}
           <div className="flex items-center gap-4">
              <div className="bg-black p-3 text-white"><Settings className="size-8" /></div>
@@ -203,7 +206,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="lg:col-span-8 space-y-8">
             {/* Commander Identity */}
-            <div className={`border-4 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${settings.theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
+            <div className="border-4 border-black dark:border-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-zinc-900">
                <div className="flex items-center gap-8">
                   <div className="relative size-24 border-4 border-black bg-gray-100 flex items-center justify-center overflow-hidden">
                      {user?.user_metadata?.avatar_url ? (<Image src={user.user_metadata.avatar_url} alt="Profile" fill className="object-cover" />) : (<span className="text-4xl font-black italic">{callSign[0]}</span>)}
@@ -227,8 +230,8 @@ export default function SettingsPage() {
             </div>
 
             {/* System Preferences */}
-            <div className={`border-4 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${settings.theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
-               <h3 className="text-sm font-black uppercase italic tracking-tighter mb-8 border-b-2 border-black pb-4">SYSTEM PREFERENCES</h3>
+            <div className="border-4 border-black dark:border-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-zinc-900">
+               <h3 className="text-sm font-black uppercase italic tracking-tighter mb-8 border-b-2 border-black dark:border-white pb-4">SYSTEM PREFERENCES</h3>
                <div className="space-y-6">
                   {[{ label: 'PUSH NOTIFICATIONS', icon: Bell, key: 'push_notifications' }, { label: 'HAPTIC FEEDBACK', icon: Vibrate, key: 'haptic_feedback' }, { label: 'INTEGRITY MODE', icon: Zap, key: 'intensity_mode' }].map((item) => (
                     <div key={item.key} className="flex items-center justify-between group">
@@ -254,11 +257,11 @@ export default function SettingsPage() {
           
           {/* Side Panel */}
           <div className="lg:col-span-4 space-y-8">
-            <div className={`border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${settings.theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
+            <div className="border-4 border-black dark:border-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-zinc-900">
                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">VISUAL PROTOCOL</h3>
-               <div className="flex border-4 border-black overflow-hidden">
-                  <button onClick={() => updateSettings({ theme: 'light' })} className={`flex-1 py-3 text-xs font-black uppercase italic transition-all ${settings.theme === 'light' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}>MUSK</button>
-                  <button onClick={() => updateSettings({ theme: 'dark' })} className={`flex-1 py-3 text-xs font-black uppercase italic transition-all ${settings.theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-800'}`}>DARK</button>
+               <div className="flex border-4 border-black dark:border-white overflow-hidden">
+                  <button onClick={() => setTheme('light')} className={`flex-1 py-3 text-xs font-black uppercase italic transition-all ${theme === 'light' ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-white dark:bg-zinc-900 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'}`}>MUSK</button>
+                  <button onClick={() => setTheme('dark')} className={`flex-1 py-3 text-xs font-black uppercase italic transition-all ${theme === 'dark' ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-white dark:bg-zinc-900 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'}`}>DARK</button>
                </div>
             </div>
             {/* Danger Zone might go here */}

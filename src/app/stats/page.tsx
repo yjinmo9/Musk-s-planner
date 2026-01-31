@@ -243,24 +243,24 @@ export default function StatsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full bg-[#f8f8f8] p-4 md:p-8 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-[#f8f8f8] dark:bg-zinc-950 p-4 md:p-8 flex items-center justify-center transition-colors duration-300">
         <Loader className="size-16 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#f8f8f8] p-4 md:p-8">
+    <div className="min-h-screen w-full bg-[#f8f8f8] dark:bg-zinc-950 p-4 md:p-8 transition-colors duration-300">
       <div className="mx-auto max-w-7xl">
         
-        <div className="mb-8 flex items-end justify-between border-b-4 border-black pb-6">
+        <div className="mb-8 flex items-end justify-between border-b-4 border-black dark:border-white pb-6">
           <div className="flex items-center gap-4">
-             <div className="bg-black p-3 text-white">
+             <div className="bg-black dark:bg-white p-3 text-white dark:text-black">
                 <BarChart3 className="size-8" />
              </div>
              <div>
                 <h1 className="text-[32px] font-black italic tracking-tighter uppercase leading-none">MISSION STATS</h1>
-                <p className="mt-1 text-xs font-bold text-gray-500 uppercase tracking-widest">Performance Analysis & Output Tracking</p>
+                <p className="mt-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Performance Analysis & Output Tracking</p>
              </div>
           </div>
         </div>
@@ -268,50 +268,49 @@ export default function StatsPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           
           <div className="lg:col-span-8 space-y-8">
-            <div className="border-4 border-black bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
                <div className="flex flex-col lg:flex-row items-center justify-around gap-8">
                   <button 
                     onClick={() => setSelectedStat('readiness')}
                     className="relative size-64 flex-shrink-0 transition-transform hover:scale-105 active:scale-95 cursor-pointer group"
                   >
                     <svg className="size-full transform -rotate-90" viewBox="0 0 256 256">
-                      <circle cx="128" cy="128" r="110" stroke="#f3f4f6" strokeWidth="24" fill="none" />
+                      <circle cx="128" cy="128" r="110" stroke="#f3f4f6" className="dark:stroke-zinc-700" strokeWidth="24" fill="none" />
                       <circle
                         cx="128" cy="128" r="110"
-                        stroke="black" strokeWidth="24" fill="none"
+                        className="stroke-black dark:stroke-white" strokeWidth="24" fill="none"
                         strokeDasharray={`${2 * Math.PI * 110}`}
                         strokeDashoffset={`${2 * Math.PI * 110 * (1 - dailyReadiness / 100)}`}
                         strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-[64px] font-black italic leading-none">{dailyReadiness}%</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-black transition-colors">EFFICIENCY</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors">EFFICIENCY</span>
                     </div>
                   </button>
                   <div className="text-center lg:text-left">
                     <h2 className="text-[32px] font-black italic tracking-tighter uppercase mb-2">CONTINUOUS STREAK</h2>
-                    <p className="text-sm font-bold text-gray-500 uppercase max-w-sm">현재 <span className="text-black">{streakDays}일</span> 연속으로 목표를 달성하고 있습니다. 이 모멘텀을 유지하세요.</p>
+                    <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase max-w-sm">현재 <span className="text-black dark:text-white">{streakDays}일</span> 연속으로 목표를 달성하고 있습니다. 이 모멘텀을 유지하세요.</p>
                     <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-4">
-                       <div className="bg-black text-white px-4 py-2 text-xs font-black uppercase">MOMENTUM: {streakDays > 7 ? 'HIGH' : streakDays > 2 ? 'STABLE' : 'LOW'}</div>
-                       <div className="border-2 border-black px-4 py-2 text-xs font-black uppercase">SYSTEM NOMINAL</div>
+                       <div className="bg-black dark:bg-white text-white dark:text-black px-4 py-2 text-xs font-black uppercase">MOMENTUM: {streakDays > 7 ? 'HIGH' : streakDays > 2 ? 'STABLE' : 'LOW'}</div>
+                       <div className="border-2 border-black dark:border-white px-4 py-2 text-xs font-black uppercase">SYSTEM NOMINAL</div>
                     </div>
                   </div>
                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+               <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                   <div className="flex justify-between items-start mb-4">
                      <div>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">WEEKLY OUTPUT</p>
                         <h3 className="text-[32px] font-black italic">{totalTimeThisWeek.toFixed(1)}H</h3>
                      </div>
-                     <Clock className="size-6 text-black/20" />
+                     <Clock className="size-6 text-black/20 dark:text-white/20" />
                   </div>
-                  <div className="h-2 w-full bg-gray-100 mt-4 overflow-hidden border-2 border-black">
-                     <div className="h-full bg-black" style={{width: `${totalTimeLastWeek > 0 ? (totalTimeThisWeek / totalTimeLastWeek) * 100 : totalTimeThisWeek > 0 ? 100 : 0}%`}}></div>
+                  <div className="h-2 w-full bg-gray-100 dark:bg-zinc-700 mt-4 overflow-hidden border-2 border-black dark:border-white">
+                     <div className="h-full bg-black dark:bg-white" style={{width: `${totalTimeLastWeek > 0 ? (totalTimeThisWeek / totalTimeLastWeek) * 100 : totalTimeThisWeek > 0 ? 100 : 0}%`}}></div>
                   </div>
                   <p className="mt-2 text-[10px] font-bold text-gray-400 uppercase">
                     지난주 대비 {(totalTimeThisWeek - totalTimeLastWeek).toFixed(1)}H {totalTimeThisWeek >= totalTimeLastWeek ? '증가' : '감소'}
@@ -319,12 +318,12 @@ export default function StatsPage() {
                </div>
                <div 
                   onClick={() => setSelectedStat('pro_tier')}
-                  className="border-4 border-dashed border-black bg-gray-50 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center cursor-pointer group hover:bg-white hover:border-solid transition-all"
+                  className="border-4 border-dashed border-black dark:border-white bg-gray-50 dark:bg-zinc-800 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center cursor-pointer group hover:bg-white dark:hover:bg-zinc-900 hover:border-solid transition-all"
                 >
-                  <div className="p-2 bg-black text-white mb-2">
+                  <div className="p-2 bg-black dark:bg-white text-white dark:text-black mb-2">
                     <Lock className="size-4" />
                   </div>
-                  <p className="text-xs font-black uppercase text-gray-400 group-hover:text-black">UNLOCK FOCUS SCORE</p>
+                  <p className="text-xs font-black uppercase text-gray-400 group-hover:text-black dark:group-hover:text-white">UNLOCK FOCUS SCORE</p>
                   <p className="text-[9px] font-bold text-gray-400">Pro Tier에서 확인 가능</p>
                </div>
             </div>
@@ -333,16 +332,16 @@ export default function StatsPage() {
           <div className="lg:col-span-4 space-y-8">
             <div 
               onClick={() => setSelectedStat('momentum')}
-              className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all group"
+              className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[10px_10px_0px_0px_rgba(255,255,255,1)] transition-all group"
             >
                <div className="flex items-center justify-between mb-6">
                   <h3 className="text-sm font-black uppercase italic tracking-tighter">WEEKLY MOMENTUM</h3>
-                  <BarChart3 className="size-4 text-gray-300 group-hover:text-black transition-colors" />
+                  <BarChart3 className="size-4 text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white transition-colors" />
                </div>
                <div className="flex items-end justify-between h-48 gap-2">
                   {weeklyData.map((val, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                       <div className={`w-full bg-black transition-all hover:bg-gray-700`} style={{ height: `${val}%` }}></div>
+                       <div className="w-full bg-black dark:bg-white transition-all hover:bg-gray-700 dark:hover:bg-gray-300" style={{ height: `${val}%` }}></div>
                        <span className="text-[9px] font-black text-gray-400 uppercase">{['M','T','W','T','F','S','S'][i]}</span>
                     </div>
                   ))}
@@ -351,11 +350,11 @@ export default function StatsPage() {
 
              <div 
               onClick={() => setSelectedStat('allocation')}
-              className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-50 transition-all group"
+              className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all group"
             >
                <div className="flex items-center justify-between mb-6">
                   <h3 className="text-sm font-black uppercase italic tracking-tighter">TIME ALLOCATION</h3>
-                  <PieChart className="size-4 text-gray-300 group-hover:text-black transition-colors" />
+                  <PieChart className="size-4 text-gray-300 dark:text-gray-600 group-hover:text-black dark:group-hover:text-white transition-colors" />
                </div>
                <div className="flex flex-col gap-3">
                   {timeAllocation.length > 0 ? timeAllocation.map((item, i) => (
@@ -364,7 +363,7 @@ export default function StatsPage() {
                         <span>{item.label}</span>
                         <span>{item.value}%</span>
                       </div>
-                      <div className="h-2 w-full bg-gray-100 overflow-hidden border-2 border-black">
+                      <div className="h-2 w-full bg-gray-100 dark:bg-zinc-700 overflow-hidden border-2 border-black dark:border-white">
                         <div className="h-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }}></div>
                       </div>
                     </div>
@@ -378,7 +377,7 @@ export default function StatsPage() {
             
             <div 
               onClick={() => setSelectedStat('pro_tier')}
-              className="border-4 border-black bg-black text-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_11px_rgba(168,85,247,0.2)] transition-all group"
+              className="border-4 border-black dark:border-white bg-black text-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] cursor-pointer hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_11px_rgba(168,85,247,0.2)] transition-all group"
             >
                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">NEURAL LINK</h3>
                <p className="text-xs font-bold text-purple-400 mb-4">고급 분석 기능으로 생산성을 극대화하세요.</p>

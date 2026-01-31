@@ -440,30 +440,30 @@ function DailyContent() {
     setTimeout(saveData, 100);
   }, [inputValue, editingBlock, dragStartAbs, dragEndAbs, quantum, selectedColor, resetInput, saveData, hours, SLOTS_PER_HOUR, currentDate]);
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div></div>;
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-white"></div></div>;
 
   return (
-    <div className="min-h-screen w-full bg-[#f8f8f8] p-4 md:p-8" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+    <div className="min-h-screen w-full bg-[#f8f8f8] dark:bg-zinc-950 p-4 md:p-8 transition-colors duration-300" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex items-end justify-between lg:flex">
           <div>
             <h1 className="text-[32px] font-black italic tracking-tighter uppercase leading-none">MISSION: DAILY LAUNCH</h1>
-            <p className="mt-1 text-xs font-bold text-gray-500 uppercase tracking-widest">{currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</p>
+            <p className="mt-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</p>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-3">
-             <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div className="mb-6 flex items-center justify-between"><h3 className="text-sm font-black uppercase italic tracking-tighter">주요 과업</h3><button onClick={addMainTask} className="border-2 border-black p-1 hover:bg-black hover:text-white transition-all"><Plus className="w-4 h-4 stroke-[3px]" /></button></div>
-                <div className="space-y-3">{plannerData.mainThings.map((task, index) => (<div key={index} className="group flex items-center gap-3 border-b-2 border-black/5 pb-2"><button onClick={() => toggleMainTask(index)} className={`flex size-6 shrink-0 items-center justify-center border-2 border-black transition-all ${task.completed ? 'bg-black text-white' : 'bg-white'}`}>{task.completed && <Check className="w-4 h-4 stroke-[4px]" />}</button><input className={`flex-1 bg-transparent text-[13px] font-bold outline-none uppercase ${task.completed ? 'line-through text-gray-400' : 'text-black'}`} value={task.text} onChange={(e) => updateMainTaskText(index, e.target.value)} onBlur={saveData} placeholder="전략 지점 입력..."/><button onClick={() => { setPlannerData(prev => ({...prev, mainThings: prev.mainThings.filter((_, i) => i !== index)})); setTimeout(saveData, 100); }} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-600"><X className="w-4 h-4 stroke-[3px]" /></button></div>))}</div>
+             <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                <div className="mb-6 flex items-center justify-between"><h3 className="text-sm font-black uppercase italic tracking-tighter">주요 과업</h3><button onClick={addMainTask} className="border-2 border-black dark:border-white p-1 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all"><Plus className="w-4 h-4 stroke-[3px]" /></button></div>
+                <div className="space-y-3">{plannerData.mainThings.map((task, index) => (<div key={index} className="group flex items-center gap-3 border-b-2 border-black/5 dark:border-white/5 pb-2"><button onClick={() => toggleMainTask(index)} className={`flex size-6 shrink-0 items-center justify-center border-2 border-black dark:border-white transition-all ${task.completed ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-white dark:bg-zinc-900'}`}>{task.completed && <Check className="w-4 h-4 stroke-[4px]" />}</button><input className={`flex-1 bg-transparent text-[13px] font-bold outline-none uppercase ${task.completed ? 'line-through text-gray-400' : 'text-black dark:text-white'}`} value={task.text} onChange={(e) => updateMainTaskText(index, e.target.value)} onBlur={saveData} placeholder="전략 지점 입력..."/><button onClick={() => { setPlannerData(prev => ({...prev, mainThings: prev.mainThings.filter((_, i) => i !== index)})); setTimeout(saveData, 100); }} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-red-600 dark:hover:text-red-400"><X className="w-4 h-4 stroke-[3px]" /></button></div>))}</div>
              </div>
-             <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <h3 className="mb-4 text-sm font-black uppercase italic tracking-tighter">브레인 덤프</h3><textarea className="h-48 w-full resize-none bg-gray-50 p-4 text-[13px] font-medium leading-relaxed outline-none border-2 border-transparent focus:border-black transition-all" value={plannerData.brainDump} onChange={(e) => setPlannerData(prev => ({ ...prev, brainDump: e.target.value }))} onBlur={saveData} placeholder="모든 생각을 쏟아내세요..."/>
+             <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                <h3 className="mb-4 text-sm font-black uppercase italic tracking-tighter">브레인 덤프</h3><textarea className="h-48 w-full resize-none bg-gray-50 dark:bg-zinc-800 p-4 text-[13px] font-medium leading-relaxed outline-none border-2 border-transparent focus:border-black dark:focus:border-white transition-all text-black dark:text-white" value={plannerData.brainDump} onChange={(e) => setPlannerData(prev => ({ ...prev, brainDump: e.target.value }))} onBlur={saveData} placeholder="모든 생각을 쏟아내세요..."/>
              </div>
           </div>
           <div className="lg:col-span-6">
-            <div className={`relative border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col ${isCompactView ? 'h-[90vh]' : 'h-[75vh]'}`}>
-              <div className="border-b-4 border-black p-4 flex items-center justify-between bg-white shrink-0">
+            <div className={`relative border-4 border-black dark:border-white bg-white dark:bg-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] flex flex-col ${isCompactView ? 'h-[90vh]' : 'h-[75vh]'}`}>
+              <div className="border-b-4 border-black dark:border-white p-4 flex items-center justify-between bg-white dark:bg-zinc-900 shrink-0">
                  <h2 className="text-lg font-black italic tracking-tighter uppercase">타임 플랜</h2>
                   <div className="flex gap-2">
                     {colorProtocol.map((c) => (
@@ -478,7 +478,7 @@ function DailyContent() {
                     {/* 모아보기 토글 버튼 */}
                     <button 
                       onClick={() => setIsCompactView(!isCompactView)}
-                      className="size-6 border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all ml-2"
+                      className="size-6 border-2 border-black dark:border-white flex items-center justify-center hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all ml-2"
                       title={isCompactView ? '상세보기' : '모아보기'}
                     >
                       {isCompactView ? <Minimize2 className="w-3 h-3 stroke-[3px]" /> : <Maximize2 className="w-3 h-3 stroke-[3px]" />}
@@ -488,14 +488,14 @@ function DailyContent() {
               <div className={`flex-1 ${isCompactView ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden hide-scrollbar'}`} onContextMenu={(e) => e.preventDefault()}>
                 <div className="relative w-full">
                   {hours.map((hour) => (
-                    <div key={hour} className="flex border-b border-black last:border-b-0" style={{ height: `${currentHourHeight}px` }}>
-                      <div className="w-16 shrink-0 flex flex-col items-center justify-start pt-1 border-r border-black bg-gray-50/50">
-                        <span className={`font-black italic text-black/60 ${isCompactView ? 'text-[10px]' : 'text-[14px]'}`}>{String(hour).padStart(2, '0')}</span>
+                    <div key={hour} className="flex border-b border-black dark:border-white/20 last:border-b-0" style={{ height: `${currentHourHeight}px` }}>
+                      <div className="w-16 shrink-0 flex flex-col items-center justify-start pt-1 border-r border-black dark:border-white/20 bg-gray-50/50 dark:bg-zinc-800/50">
+                        <span className={`font-black italic text-black/60 dark:text-white/60 ${isCompactView ? 'text-[10px]' : 'text-[14px]'}`}>{String(hour).padStart(2, '0')}</span>
                       </div>
                       <div className="flex-1 relative">
                         <div className="absolute inset-0 grid" style={{ gridTemplateRows: `repeat(${SLOTS_PER_HOUR}, 1fr)` }}>
                           {Array.from({ length: SLOTS_PER_HOUR }).map((_, slot) => (
-                            <div key={slot} className="border-b border-black/10 last:border-b-0 cursor-pointer hover:bg-black/[0.04] transition-colors" onMouseDown={(e) => handleMouseDown(e, hour, slot)} onMouseEnter={() => handleMouseEnter(hour, slot)}/>
+                            <div key={slot} className="border-b border-black/10 dark:border-white/10 last:border-b-0 cursor-pointer hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors" onMouseDown={(e) => handleMouseDown(e, hour, slot)} onMouseEnter={() => handleMouseEnter(hour, slot)}/>
                           ))}
                         </div>
                       </div>
@@ -530,25 +530,25 @@ function DailyContent() {
             </div>
           </div>
           <div className="hidden space-y-6 lg:block lg:col-span-3">
-             <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+             <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                 <div className="flex items-center justify-between mb-6">
                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">LAUNCH READINESS</h3>
-                   <span className="bg-black text-white px-2 py-0.5 text-[9px] font-black italic">ACTIVE</span>
+                   <span className="bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 text-[9px] font-black italic">ACTIVE</span>
                 </div>
                 <div className="flex flex-col items-center gap-6">
-                   <div className="relative size-32 border-8 border-black flex items-center justify-center">
+                   <div className="relative size-32 border-8 border-black dark:border-white flex items-center justify-center">
                       <span className="text-[32px] font-black italic">{missionReadiness}%</span>
-                      <div className="absolute -bottom-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-black">{completedTasksCount}/{totalTasksCount} TASKS</div>
+                      <div className="absolute -bottom-4 bg-white dark:bg-zinc-900 border-2 border-black dark:border-white px-2 py-0.5 text-[10px] font-black">{completedTasksCount}/{totalTasksCount} TASKS</div>
                    </div>
                    <button
                     onClick={toggleComplete}
-                    className={`h-16 w-full text-[13px] font-black uppercase italic tracking-[0.2em] transition-all border-4 border-black ${plannerData.completed ? 'bg-black text-white' : 'bg-white hover:bg-black hover:text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none translate-x-[-4px] translate-y-[-4px] hover:translate-x-0 hover:translate-y-0'}`}
+                    className={`h-16 w-full text-[13px] font-black uppercase italic tracking-[0.2em] transition-all border-4 border-black dark:border-white ${plannerData.completed ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-white dark:bg-zinc-900 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none translate-x-[-4px] translate-y-[-4px] hover:translate-x-0 hover:translate-y-0'}`}
                   >
                     {plannerData.completed ? 'MISSION COMPLETED' : 'COMPLETE MISSION'}
                   </button>
                 </div>
              </div>
-             <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+             <div className="border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                 <div className="flex items-center justify-between mb-4">
                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">MISSION STREAK</h3>
                 </div>
@@ -556,21 +556,21 @@ function DailyContent() {
                    <span className="text-[44px] font-black italic leading-none">{streakDays}</span>
                    <div>
                       <p className="text-[11px] font-black uppercase leading-tight">ACTIVE DAYS</p>
-                      <p className="mt-1 text-[10px] font-bold text-green-600 uppercase">SYSTEM STABLE</p>
+                      <p className="mt-1 text-[10px] font-bold text-green-600 dark:text-green-400 uppercase">SYSTEM STABLE</p>
                    </div>
                 </div>
              </div>
           </div>
         </div>
       </div>
-      {showInput && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"><div className="w-full max-w-[400px] border-4 border-black bg-white p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"><h3 className="mb-6 text-[24px] font-black italic tracking-tighter uppercase">미션 상세 설정</h3><div className="space-y-4"><textarea autoFocus className="w-full h-32 resize-none border-4 border-black bg-gray-50 p-4 text-sm font-bold uppercase outline-none focus:bg-white transition-colors" placeholder="어떤 미션을 수행하시겠습니까?" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInputSubmit(); } }} /><div className="grid grid-cols-2 gap-4"><button onClick={(e) => {e.stopPropagation(); resetInput();}} className="h-14 border-2 border-black text-[11px] font-black uppercase tracking-widest hover:bg-gray-100">중단</button><button onClick={handleInputSubmit} className="h-14 bg-black text-[11px] font-black text-white uppercase tracking-widest hover:bg-gray-800">확정</button></div></div></div></div>)}
+      {showInput && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"><div className="w-full max-w-[400px] border-4 border-black dark:border-white bg-white dark:bg-zinc-900 p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_rgba(255,255,255,1)]"><h3 className="mb-6 text-[24px] font-black italic tracking-tighter uppercase">미션 상세 설정</h3><div className="space-y-4"><textarea autoFocus className="w-full h-32 resize-none border-4 border-black dark:border-white bg-gray-50 dark:bg-zinc-800 p-4 text-sm font-bold uppercase outline-none focus:bg-white dark:focus:bg-zinc-700 transition-colors text-black dark:text-white" placeholder="어떤 미션을 수행하시겠습니까?" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInputSubmit(); } }} /><div className="grid grid-cols-2 gap-4"><button onClick={(e) => {e.stopPropagation(); resetInput();}} className="h-14 border-2 border-black dark:border-white text-[11px] font-black uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-zinc-800">중단</button><button onClick={handleInputSubmit} className="h-14 bg-black dark:bg-white text-[11px] font-black text-white dark:text-black uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200">확정</button></div></div></div></div>)}
     </div>
   )
 }
 
 export default function Daily() {
   return (
-    <Suspense fallback={ <div className="min-h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div></div> }>
+    <Suspense fallback={ <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black dark:border-white"></div></div> }>
       <DailyContent />
     </Suspense>
   )
